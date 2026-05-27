@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Students can read their own doc and attendance/results
+    match /students/{studentId} {
+      allow read: if request.auth != null && (request.auth.uid == studentId || getRole() in ['teacher','manager','admin','chairman','secure-admin']);
+      allow write: if getRole() in ['manager','admin','chairman','secure-admin'];
+    }
+
+    match /teachers/{teacherId} {
+      allow read, write: if getRole() in ['admin','chairman','secure-admin'];
+    }
+
+    match /attendance/{doc} {
+      allow read: if request.auth != null;
+      allow create: if getRole() in ['manager','admin'];
+    }
+
+    match /homework/{doc} {
+      allow read: if request.auth != null;
+      allow write: if getRole() in ['teacher','manager','admin'];
+    }
+
+    match /homework_reports/{doc} {
+      allow read: if request.auth != null;
+      allow write: if getRole() in ['teacher','manager','admin'];
+    }
+
+    match /payments/{doc} {
+      allow read: if request.auth != null && getRole() in ['manager','admin','chairman','secure-admin'];
+      allow write: if getRole() in ['manager','admin'];
+    }
+
+    match /notifications/{doc} {
+      allow read: if true; // public notices
+      allow write: if getRole() in ['manager','admin'];
+    }
+
+    match /leaderboards/{doc} {
+      allow read: if true;
+      allow write: if getRole() in ['admin','chairman','secure-admin'];
+    }
+
+    // Helper function to determine role from custom claims or Firestore
+    function getRole() {
+      return request.auth.token.role;
+      // To set custom claims via backend, but for zero-cost we can check Firestore
+      // Alternative: return getRoleFromFirestore();
+    }
+
+    // Fallback rule – deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
