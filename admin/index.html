@@ -62,5 +62,10 @@
     <button onclick="logout()" style="margin-top:20px;">লগআউট</button>
   </div>
   <script src="/admin/admin.js"></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
 </body>
 </html>
