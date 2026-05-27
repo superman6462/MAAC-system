@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAAC | Secure Admin</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/glassmorphism.css">
+  <script src="/__/firebase/9.22.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="/firebase/firebase-config.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/db.js"></script>
+  <script src="/offline/idb.js"></script>
+  <script src="/analytics/analytics-core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="glass dashboard-container">
+    <h1>🔒 সিকিউর অ্যাডমিন</h1>
+    <div id="secureContent" class="glass" style="padding:20px; margin:20px;">
+      <p>Only super admins can access logs and critical settings.</p>
+    </div>
+    <button onclick="loadLogs()">সিস্টেম লগ</button>
+    <button onclick="viewLoginHistory()">লগইন হিস্ট্রি</button>
+    <button onclick="manageChairman()">চেয়ারম্যান ম্যানেজ</button>
+    <button onclick="logout()">লগআউট</button>
+  </div>
+  <script src="/secure-admin/secure-admin.js"></script>
+</body>
+</html>
