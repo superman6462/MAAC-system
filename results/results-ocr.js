@@ -1,28 +1,37 @@
-async function extractMarksFromImage(file) {
-  const { data: { text } } = await Tesseract.recognize(file, 'eng+ben', {
-    logger: m => console.log(m)
+async function enterMarks(classId, studentId, subject, examType, marks) {
+  await db.collection('results').doc(`${classId}_${studentId}_${examType}_${subject}`).set({
+    classId, studentId, subject, examType, marks,
+    enteredBy: getCurrentUser().id,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
-  // Simplified parsing: assume lines like "Name: X, Marks: Y"
-  const lines = text.split('\n');
-  const results = [];
-  lines.forEach(line => {
-    const match = line.match(/([A-Za-z ]+)\s*[:-]\s*(\d+)/);
-    if (match) {
-      results.push({ name: match[1].trim(), marks: parseInt(match[2]) });
-    }
-  });
-  return results;
 }
 
-async function processOCRUpload(file, classId, week) {
-  const extracted = await extractMarksFromImage(file);
-  const batch = db.batch();
-  extracted.forEach(({ name, marks }) => {
-    // Match name to student ID? For now, just store with name
-    const ref = db.collection('weekly_results').doc(`${classId}_${week}_${name}`);
-    batch.set(ref, { name, marks, classId, week, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+async function getStudentResult(studentId, examType) {
+  const student = await getCachedDoc('students', studentId);
+  if (!student) return null;
+  const snap = await db.collection('results')
+    .where('studentId', '==', studentId)
+    .where('examType', '==', examType)
+    .get();
+  const subjects = {};
+  let total = 0, count = 0;
+  snap.forEach(doc => {
+    const r = doc.data();
+    subjects[r.subject] = r.marks;
+    total += r.marks;
+    count++;
   });
-  await batch.commit();
-  // Optionally update leaderboard
-  await updateWeeklyLeaderboard();
+  return { name: student.name, subjects, total, average: count ? total/count : 0 };
+}
+
+// Generate term result (simplified)
+async function generateClassResult(classId, examType) {
+  const students = await getCachedCollection('students', { field: 'class', op: '==', value: classId });
+  const results = [];
+  for (const s of students) {
+    const res = await getStudentResult(s.id, examType);
+    if (res) results.push(res);
+  }
+  results.sort((a,b) => b.average - a.average);
+  return results;
 }
