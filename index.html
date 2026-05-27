@@ -280,6 +280,11 @@
     });
     // Dynamic stats and content will be loaded via Firebase after auth
   </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
   <!-- Firebase + shared modules (loaded later) -->
 </body>
 </html>
