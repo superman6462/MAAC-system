@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAAC | Student Dashboard</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/glassmorphism.css">
+  <script src="/__/firebase/9.22.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-messaging-compat.js"></script>
+  <script src="/firebase/firebase-config.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/db.js"></script>
+  <script src="/offline/idb.js"></script>
+</head>
+<body>
+  <div class="glass dashboard-container">
+    <h1>স্বাগতম / Welcome, <span id="studentName">Student</span></h1>
+    <nav class="bottom-nav-mobile">
+      <a href="#home">হোম</a>
+      <a href="#attendance">উপস্থিতি</a>
+      <a href="#homework">হোমওয়ার্ক</a>
+      <a href="#results">রেজাল্ট</a>
+      <a href="#leaderboard">লিডারবোর্ড</a>
+    </nav>
+    <div id="contentArea">
+      <!-- Dynamic content loaded here -->
+    </div>
+  </div>
+  <script src="/student/student.js"></script>
+</body>
+</html>
