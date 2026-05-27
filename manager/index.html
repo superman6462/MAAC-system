@@ -39,5 +39,10 @@
     <div id="managerContent" class="glass" style="margin-top:20px; padding:16px;"></div>
   </div>
   <script src="/manager/manager.js"></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
 </body>
 </html>
