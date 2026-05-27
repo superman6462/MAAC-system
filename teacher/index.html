@@ -30,5 +30,10 @@
     <button onclick="logout()">লগআউট</button>
   </div>
   <script src="/teacher/teacher.js"></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
 </body>
 </html>
