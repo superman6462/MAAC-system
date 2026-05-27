@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAAC | Teacher Portal</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/glassmorphism.css">
+  <script src="/__/firebase/9.22.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="/firebase/firebase-config.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/db.js"></script>
+  <script src="/offline/idb.js"></script>
+</head>
+<body>
+  <div class="glass dashboard-container">
+    <h1>👨‍🏫 শিক্ষক পোর্টাল / Teacher Portal</h1>
+    <div id="teacherInfo"></div>
+    <div class="dashboard-grid">
+      <div class="glass card" id="myClasses">📚 আমার ক্লাস / My Classes</div>
+      <div class="glass card" id="studentList">👥 ছাত্র তালিকা / Student List</div>
+      <div class="glass card" id="homeworkReport">📝 হোমওয়ার্ক রিপোর্ট</div>
+      <div class="glass card" id="weakStudents">⚠️ দুর্বল শিক্ষার্থী</div>
+      <div class="glass card" id="leaderboard">🏆 লিডারবোর্ড</div>
+    </div>
+    <div id="dynamicContent" class="glass" style="margin-top:20px; padding:16px;"></div>
+    <button onclick="logout()">লগআউট</button>
+  </div>
+  <script src="/teacher/teacher.js"></script>
+</body>
+</html>
