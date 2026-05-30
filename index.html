@@ -17,7 +17,6 @@
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Main CSS (inline for zero extra request) -->
   <style>
     :root {
       --primary: #1A73E8;
@@ -124,7 +123,7 @@
     @media (max-width: 768px) {
       .hero { flex-direction: column; text-align: center; }
       .hero h1 { font-size: 2.2rem; }
-      .nav-links { display: none; } /* We'll add mobile menu later */
+      .nav-links { display: none; }
     }
   </style>
 </head>
@@ -164,7 +163,7 @@
     </div>
   </section>
 
-  <!-- Stats -->
+  <!-- Stats (dynamic) -->
   <div class="container stats" data-aos="fade-up">
     <div class="stat-item"><div class="stat-number" id="studentCount">0</div>শিক্ষার্থী / Students</div>
     <div class="stat-item"><div class="stat-number" id="teacherCount">0</div>শিক্ষক / Teachers</div>
@@ -202,7 +201,6 @@
     <h2 style="text-align:center;">🖼️ গ্যালারি</h2>
     <div class="swiper gallerySwiper" style="margin-top:24px;">
       <div class="swiper-wrapper" id="gallerySwiper">
-        <!-- Dynamic from Firestore or static placeholder -->
         <div class="swiper-slide"><img src="https://placehold.co/600x400/1A73E8/white?text=Event+1" alt="Event" style="border-radius:16px; max-width:100%;"></div>
         <div class="swiper-slide"><img src="https://placehold.co/600x400/00BFA5/white?text=Event+2" alt="Event" style="border-radius:16px; max-width:100%;"></div>
       </div>
@@ -260,12 +258,21 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <!-- Firebase (NEW: dynamic data) -->
+  <script src="/__/firebase/9.22.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="/firebase/firebase-config.js"></script>
+
   <script>
+    // AOS
     AOS.init({ duration: 1000, once: true });
-    // Swiper for notices, teachers, gallery
+
+    // Swiper
     var noticeSwiper = new Swiper(".mySwiper", { slidesPerView: 1, spaceBetween: 20, pagination: { el: ".swiper-pagination", clickable: true }, autoplay: { delay: 4000 } });
     var teacherSwiper = new Swiper(".teacherSwiper", { slidesPerView: 3, spaceBetween: 24, breakpoints: { 640: { slidesPerView: 1 }, 1024: { slidesPerView: 3 } } });
     var gallerySwiper = new Swiper(".gallerySwiper", { slidesPerView: 2, spaceBetween: 16 });
+
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
     themeToggle.addEventListener('click', () => {
@@ -278,13 +285,37 @@
         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
       }
     });
-    // Dynamic stats and content will be loaded via Firebase after auth
+
+    // === DYNAMIC STATS FROM FIRESTORE ===
+    async function loadDynamicStats() {
+      try {
+        const doc = await db.collection('settings').doc('stats').get();
+        if (doc.exists) {
+          const stats = doc.data();
+          document.getElementById('studentCount').textContent = stats.students || 0;
+          document.getElementById('teacherCount').textContent = stats.teachers || 0;
+          document.getElementById('courseCount').textContent = stats.courses || 0;
+          document.getElementById('yearCount').textContent = stats.years || 0;
+        }
+      } catch (error) {
+        console.warn("Could not load dynamic stats:", error);
+      }
+    }
+
+    // Load stats on page load
+    loadDynamicStats();
+
+    // Optionally, load notices, teachers, gallery here too (if you make them dynamic)
+    // async function loadDynamicNotices() { ... }
+    // async function loadDynamicTeachers() { ... }
+    // etc.
   </script>
+
+  <!-- Service Worker for PWA -->
   <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
-</script>
-  <!-- Firebase + shared modules (loaded later) -->
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
 </body>
 </html>
