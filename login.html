@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: sans-serif;
       background: linear-gradient(135deg, #1A73E8, #00BFA5);
       min-height: 100vh;
       display: flex;
@@ -16,104 +16,104 @@
     }
     .login-box {
       background: rgba(255,255,255,0.95);
-      padding: 40px;
-      border-radius: 20px;
+      padding: 30px;
+      border-radius: 16px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
       width: 90%;
-      max-width: 400px;
+      max-width: 380px;
       text-align: center;
     }
-    .login-box h2 { margin-bottom: 10px; color: #1A73E8; }
-    .login-box p { color: #666; margin-bottom: 24px; font-size: 0.9rem; }
+    h2 { color: #1A73E8; margin-bottom: 20px; }
     input {
       display: block;
       width: 100%;
       padding: 14px;
-      margin: 12px 0;
-      border: 2px solid #e0e0e0;
+      margin: 10px 0;
+      border: 2px solid #ddd;
       border-radius: 10px;
       font-size: 16px;
-      outline: none;
-      transition: border 0.3s;
     }
-    input:focus { border-color: #1A73E8; }
     button {
       width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, #1A73E8, #00BFA5);
+      background: #1A73E8;
       color: #fff;
       border: none;
       border-radius: 10px;
       font-size: 16px;
-      font-weight: 600;
+      font-weight: bold;
+      margin-top: 10px;
       cursor: pointer;
-      margin-top: 8px;
     }
-    button:active { opacity: 0.8; }
-    #msg { margin-top: 16px; font-size: 0.9rem; }
-    #msg.error { color: #e53935; }
-    #msg.success { color: #2e7d32; }
+    #status { margin-top: 14px; font-size: 14px; }
+    .error { color: red; }
+    .success { color: green; }
   </style>
 </head>
 <body>
   <div class="login-box">
     <h2>🔐 MAAC Super Admin</h2>
-    <p>Sign in to manage the system</p>
     <input id="email" type="email" placeholder="Email address">
     <input id="password" type="password" placeholder="Password">
-    <button onclick="handleLogin()">Sign In</button>
-    <div id="msg"></div>
+    <button onclick="doLogin()">Sign In</button>
+    <div id="status"></div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <!-- Firebase via official CDN (version 10.12.2 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
   <script>
-    // Firebase config directly here (no dependencies)
-    const firebaseConfig = {
-      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
-      authDomain: "maac-system.firebaseapp.com",
-      projectId: "maac-system",
-      storageBucket: "maac-system.firebasestorage.app",
-      messagingSenderId: "888172288312",
-      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+    // Wait for scripts to load
+    window.onload = function() {
+      document.getElementById('status').textContent = 'Ready. Enter credentials.';
+      document.getElementById('status').className = 'success';
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    async function handleLogin() {
+    function doLogin() {
+      const status = document.getElementById('status');
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      const msg = document.getElementById('msg');
 
       if (!email || !password) {
-        msg.textContent = 'Please enter email and password';
-        msg.className = 'error';
+        status.textContent = 'Enter email and password.';
+        status.className = 'error';
         return;
       }
 
-      msg.textContent = 'Signing in...';
-      msg.className = '';
-
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        msg.textContent = '✅ Login successful! Redirecting...';
-        msg.className = 'success';
-        setTimeout(() => {
-          window.location.href = '/secure-admin/';
-        }, 1000);
-      } catch (error) {
-        msg.textContent = '❌ ' + error.message;
-        msg.className = 'error';
+      // Check if firebase loaded
+      if (typeof firebase === 'undefined') {
+        status.textContent = 'Firebase still loading... wait 3 seconds and try again.';
+        status.className = 'error';
+        return;
       }
-    }
 
-    // Allow pressing Enter to login
-    document.getElementById('password').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleLogin();
-    });
+      // Init if not already
+      if (!firebase.apps.length) {
+        firebase.initializeApp({
+          apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+          authDomain: "maac-system.firebaseapp.com",
+          projectId: "maac-system",
+          storageBucket: "maac-system.firebasestorage.app",
+          messagingSenderId: "888172288312",
+          appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+        });
+      }
+
+      status.textContent = 'Signing in...';
+      status.className = '';
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          status.textContent = '✅ Success! Redirecting...';
+          status.className = 'success';
+          setTimeout(() => { window.location.href = '/secure-admin/'; }, 800);
+        })
+        .catch(err => {
+          status.textContent = '❌ ' + err.message;
+          status.className = 'error';
+        });
+    }
   </script>
 </body>
 </html>
