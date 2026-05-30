@@ -19,14 +19,13 @@
     button.action { padding: 10px 20px; background: #fff; color: #1A73E8; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 4px; }
     #loadingScreen { text-align: center; padding: 80px 20px; }
     #mainPanel { display: none; }
-    .error { background: #ff4444; padding: 12px; border-radius: 8px; margin: 10px 0; }
   </style>
 </head>
 <body>
 
 <div id="loadingScreen">
   <h2>⏳ লোড হচ্ছে...</h2>
-  <p id="loadStatus">Firebase initialising...</p>
+  <p id="loadStatus">Checking authentication...</p>
 </div>
 
 <div id="mainPanel">
@@ -45,40 +44,52 @@
   <div class="content" id="contentArea"></div>
 </div>
 
-<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
-  // ========== 1. INIT FIREBASE ==========
-  try {
-    firebase.initializeApp({
-      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
-      authDomain: "maac-system.firebaseapp.com",
-      projectId: "maac-system",
-      storageBucket: "maac-system.firebasestorage.app",
-      messagingSenderId: "888172288312",
-      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
-    });
-    document.getElementById('loadStatus').textContent = 'Firebase initialised. Checking login...';
-  } catch(e) {
-    document.getElementById('loadingScreen').innerHTML = '<div class="error">Firebase init error: ' + e.message + '</div>';
-    throw e;
-  }
-
+  // ========== FIREBASE INIT ==========
+  firebase.initializeApp({
+    apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+    authDomain: "maac-system.firebaseapp.com",
+    projectId: "maac-system",
+    storageBucket: "maac-system.firebasestorage.app",
+    messagingSenderId: "888172288312",
+    appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+  });
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // ========== 2. AUTH CHECK WITH BACKUP ==========
-  let authChecked = false;
+  let panelShown = false;
+
+  // ========== AUTH CHECK ==========
+  function redirectToLogin() {
+    window.location.href = '/login.html';
+  }
+
+  async function checkAccess(user) {
+    document.getElementById('loadStatus').textContent = 'Verifying access...';
+    try {
+      const doc = await db.collection('secure-admin').doc(user.uid).get();
+      if (doc.exists) {
+        showPanel(user);
+      } else {
+        document.getElementById('loadingScreen').innerHTML = '<p style="color:red;">❌ Not authorized. <a href="/login.html" style="color:#fff;">Login again</a></p>';
+        auth.signOut();
+      }
+    } catch (e) {
+      document.getElementById('loadingScreen').innerHTML = '<p style="color:red;">Error: ' + e.message + '</p>';
+    }
+  }
 
   function showPanel(user) {
+    if (panelShown) return;
+    panelShown = true;
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('mainPanel').style.display = 'block';
     document.getElementById('userEmail').textContent = '👤 ' + user.email;
     loadTab('dashboard');
-    // Sidebar clicks
     document.querySelectorAll('#sidebarNav button').forEach(btn => {
       btn.addEventListener('click', function() {
         document.querySelectorAll('#sidebarNav button').forEach(b => b.classList.remove('active'));
@@ -88,63 +99,33 @@
     });
   }
 
-  function redirectToLogin() {
-    window.location.href = '/login.html';
+  // Immediate check
+  const currentUser = auth.currentUser;
+  if (currentUser) {
+    checkAccess(currentUser);
+  } else {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      unsubscribe();
+      if (user) {
+        checkAccess(user);
+      } else {
+        redirectToLogin();
+      }
+    });
   }
 
-  // onAuthStateChanged listener
-  const unsubscribe = auth.onAuthStateChanged(async (user) => {
-    if (authChecked) return; // only handle once
-    authChecked = true;
-
-    if (!user) {
-      document.getElementById('loadingScreen').innerHTML = '<p>Not logged in. Redirecting to login...</p>';
-      setTimeout(redirectToLogin, 1500);
-      return;
-    }
-
-    document.getElementById('loadStatus').textContent = 'Verifying admin access...';
-
-    try {
-      const doc = await db.collection('secure-admin').doc(user.uid).get();
-      if (!doc.exists) {
-        document.getElementById('loadingScreen').innerHTML = '<div class="error">❌ You are not a Super Admin. <br><a href="/login.html" style="color:#fff;">Login again</a></div>';
-        await auth.signOut();
-        return;
-      }
-      showPanel(user);
-    } catch(e) {
-      document.getElementById('loadingScreen').innerHTML = '<div class="error">Firestore error: ' + e.message + '<br><a href="/login.html" style="color:#fff;">Retry</a></div>';
-    }
-  });
-
-  // Backup: if auth state not resolved within 4 seconds, force check currentUser
+  // Fallback timeout
   setTimeout(() => {
-    if (!authChecked) {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        authChecked = true;
-        db.collection('secure-admin').doc(currentUser.uid).get().then(doc => {
-          if (doc.exists) showPanel(currentUser);
-          else {
-            document.getElementById('loadingScreen').innerHTML = '<div class="error">Not authorised. <a href="/login.html">Login</a></div>';
-            auth.signOut();
-          }
-        }).catch(e => {
-          document.getElementById('loadingScreen').innerHTML = '<div class="error">Error: ' + e.message + '</div>';
-        });
-      } else {
-        document.getElementById('loadingScreen').innerHTML = '<p>Session expired. <a href="/login.html">Login again</a></p>';
-      }
+    if (!panelShown && !auth.currentUser) {
+      redirectToLogin();
     }
-  }, 4000);
+  }, 3000);
 
-  // ========== 3. LOGOUT ==========
   function logout() {
     auth.signOut().then(() => { window.location.href = '/login.html'; });
   }
 
-  // ========== 4. TAB LOADER ==========
+  // ========== TAB LOADER ==========
   function loadTab(tab) {
     const area = document.getElementById('contentArea');
     switch(tab) {
@@ -156,7 +137,7 @@
     }
   }
 
-  // ========== 5. DASHBOARD ==========
+  // ==================== DASHBOARD ====================
   async function dashboardTab(area) {
     area.innerHTML = '<p>Loading stats...</p>';
     try {
@@ -172,13 +153,13 @@
           <div class="card">📢 নোটিশ: <b>${not}</b></div>
         </div>`;
     } catch(e) {
-      area.innerHTML = `<div class="error">Error: ${e.message}</div>`;
+      area.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
     }
   }
 
-  // ========== 6. WEBSITE TABS ==========
+  // ==================== WEBSITE ====================
   function websiteTab(area) {
-    area.innerHTML = `<h3>🌐 ওয়েবসাইট</h3>
+    area.innerHTML = `<h3>🌐 ওয়েবসাইট ম্যানেজার</h3>
       <div class="sidebar">
         <button onclick="webSub('hero')" class="active">হিরো</button>
         <button onclick="webSub('notices')">নোটিশ</button>
@@ -315,7 +296,7 @@
     }
   }
 
-  // ========== 7. USERS ==========
+  // ==================== USERS ====================
   function usersTab(area) {
     area.innerHTML = `<h3>👥 ইউজার</h3>
       <select id="roleSelect"><option value="students">ছাত্র</option><option value="teachers">শিক্ষক</option></select>
@@ -364,7 +345,7 @@
     alert('Created'); listUsers();
   }
 
-  // ========== 8. SETTINGS ==========
+  // ==================== SETTINGS ====================
   async function settingsTab(area) {
     const doc = await db.collection('settings').doc('site').get();
     const s = doc.exists ? doc.data() : {};
@@ -392,12 +373,13 @@
     alert('Settings saved');
   }
 
-  // ========== 9. SYSTEM ==========
+  // ==================== SYSTEM ====================
   function systemTab(area) {
     area.innerHTML = `<h3>🛠️ সিস্টেম</h3>
       <button class="action" onclick="alert('Coming soon')">🏆 লিডারবোর্ড আপডেট</button>
       <button class="action" onclick="alert('Coming soon')">📋 লগ</button>`;
   }
 </script>
+
 </body>
 </html>
