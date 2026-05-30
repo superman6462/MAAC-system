@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAAC | Student Login</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1A73E8, #00BFA5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-box {
+      background: rgba(255,255,255,0.95);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-box h2 { margin-bottom: 10px; color: #1A73E8; }
+    .login-box p { color: #666; margin-bottom: 24px; font-size: 0.9rem; }
+    input {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #1A73E8; }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1A73E8, #00BFA5);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    #msg { margin-top: 16px; font-size: 0.9rem; }
+    #msg.error { color: #e53935; }
+    #msg.success { color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>📚 স্টুডেন্ট লগইন</h2>
+    <p>আপনার ID ও পাসওয়ার্ড দিন</p>
+    <input id="studentId" type="text" placeholder="Student ID">
+    <input id="studentPass" type="password" placeholder="Password">
+    <button onclick="handleLogin()">লগইন</button>
+    <div id="msg"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+      authDomain: "maac-system.firebaseapp.com",
+      projectId: "maac-system",
+      storageBucket: "maac-system.firebasestorage.app",
+      messagingSenderId: "888172288312",
+      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+    });
+    const db = firebase.firestore();
+
+    async function handleLogin() {
+      const id = document.getElementById('studentId').value.trim();
+      const pass = document.getElementById('studentPass').value;
+      const msg = document.getElementById('msg');
+
+      if (!id || !pass) {
+        msg.textContent = 'ID ও পাসওয়ার্ড আবশ্যক';
+        msg.className = 'error';
+        return;
+      }
+
+      msg.textContent = 'চেক করা হচ্ছে...';
+      msg.className = '';
+
+      try {
+        const doc = await db.collection('students').doc(id).get();
+        if (!doc.exists) {
+          msg.textContent = '❌ ID পাওয়া যায়নি';
+          msg.className = 'error';
+          return;
+        }
+        const data = doc.data();
+        if (data.password !== pass) {
+          msg.textContent = '❌ ভুল পাসওয়ার্ড';
+          msg.className = 'error';
+          return;
+        }
+
+        // Store login in session
+        sessionStorage.setItem('studentUser', JSON.stringify({
+          id: id,
+          name: data.name,
+          class: data.class
+        }));
+
+        msg.textContent = '✅ সফল! রিডাইরেক্ট...';
+        msg.className = 'success';
+        setTimeout(() => {
+          window.location.href = '/student/portal.html';
+        }, 1000);
+      } catch (e) {
+        msg.textContent = '❌ ' + e.message;
+        msg.className = 'error';
+      }
+    }
+  </script>
+</body>
+</html>
