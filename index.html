@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Master Academic & Admission Care – Quality coaching in Kalitola, Bogura. Weekly exams, online support, and top results.">
+  <meta name="description" content="Master Academic & Admission Care – Quality coaching in Kalitola, Bogura.">
   <meta name="theme-color" content="#1A73E8">
   <link rel="manifest" href="/manifest.json">
   <title>MAAC | Master Academic & Admission Care</title>
@@ -97,7 +97,7 @@
     .hero p { font-size: 1.2rem; margin: 20px 0; color: #475569; }
     [data-theme="dark"] .hero p { color: #cbd5e1; }
     .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
-    /* Counter */
+    /* Stats */
     .stats { display: flex; gap: 40px; margin: 60px 0; justify-content: center; flex-wrap: wrap; }
     .stat-item { text-align: center; }
     .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
@@ -150,8 +150,8 @@
   <section id="home" class="hero">
     <div class="container" style="display:flex; flex-wrap:wrap; align-items:center;">
       <div class="hero-content" data-aos="fade-right">
-        <h1>উন্নত শিক্ষার ঠিকানা<br><span class="gradient-text">Master Academic & Admission Care</span></h1>
-        <p>ক্লাসরুম কোচিং, সাপ্তাহিক পরীক্ষা, অনলাইন সাপোর্ট এবং অভিজ্ঞ শিক্ষকমণ্ডলী – সবই এখন Kalitola, Bogura-তে।</p>
+        <h1 id="heroHeading">উন্নত শিক্ষার ঠিকানা<br><span class="gradient-text">Master Academic & Admission Care</span></h1>
+        <p id="heroSubheading">ক্লাসরুম কোচিং, সাপ্তাহিক পরীক্ষা, অনলাইন সাপোর্ট এবং অভিজ্ঞ শিক্ষকমণ্ডলী – সবই এখন Kalitola, Bogura-তে।</p>
         <div class="hero-buttons">
           <a href="#admission" class="btn-grad">ভর্তি হোন / Enroll Now</a>
           <a href="/student-login.html" class="btn-grad" style="background: linear-gradient(135deg, #00BFA5, #1A73E8);">আমাদের অ্যাপ / Our App</a>
@@ -171,7 +171,7 @@
     <div class="stat-item"><div class="stat-number" id="yearCount">0</div>সালের অভিজ্ঞতা / Years</div>
   </div>
 
-  <!-- Featured Notices Swiper -->
+  <!-- Notices Swiper -->
   <section id="notice" class="container" data-aos="fade-up">
     <h2 style="text-align:center; margin-bottom:20px;">📢 নোটিশ বোর্ড / Notice Board</h2>
     <div class="swiper mySwiper">
@@ -180,11 +180,11 @@
     </div>
   </section>
 
-  <!-- Top Students & Weekly Toppers -->
+  <!-- Top Students & Weekly Toppers (static placeholder) -->
   <section class="container" style="margin-top:60px;" data-aos="fade-up">
     <h2 style="text-align:center;">🏆 টপ স্টুডেন্টস ও সাপ্তাহিক টপার</h2>
     <div class="glass" style="padding:24px; margin:20px 0;" id="topStudentsContainer">
-      <p>সাম্প্রতিক তথ্য লোড হচ্ছে... / Loading latest data...</p>
+      <p>সাম্প্রতিক তথ্য লোড হচ্ছে...</p>
     </div>
   </section>
 
@@ -200,17 +200,14 @@
   <section id="gallery" class="container" style="margin-top:60px;" data-aos="fade-up">
     <h2 style="text-align:center;">🖼️ গ্যালারি</h2>
     <div class="swiper gallerySwiper" style="margin-top:24px;">
-      <div class="swiper-wrapper" id="gallerySwiper">
-        <div class="swiper-slide"><img src="https://placehold.co/600x400/1A73E8/white?text=Event+1" alt="Event" style="border-radius:16px; max-width:100%;"></div>
-        <div class="swiper-slide"><img src="https://placehold.co/600x400/00BFA5/white?text=Event+2" alt="Event" style="border-radius:16px; max-width:100%;"></div>
-      </div>
+      <div class="swiper-wrapper" id="gallerySwiper"></div>
     </div>
   </section>
 
   <!-- Video Section -->
   <section class="container" style="margin-top:60px;" data-aos="fade-up">
     <h2 style="text-align:center;">🎥 ভিডিও গ্যালারি</h2>
-    <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:24px;">
+    <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:24px;" id="videoContainer">
       <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video" frameborder="0" allowfullscreen style="border-radius:16px; max-width:100%;"></iframe>
     </div>
   </section>
@@ -242,7 +239,7 @@
         <h4>গুরুত্বপূর্ণ লিংক</h4>
         <a href="#">Privacy Policy</a><br>
         <a href="#">Terms of Service</a><br>
-        <a href="/student/">Student Login</a>
+        <a href="/student-login.html">Student Login</a>
       </div>
       <div class="social-icons">
         <a href="https://www.facebook.com/share/197FK1e5Zr/" target="_blank"><i class="fab fa-facebook"></i></a>
@@ -259,21 +256,114 @@
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-  <!-- Firebase (NEW: dynamic data) -->
-  <script src="/__/firebase/9.22.2/firebase-app-compat.js"></script>
-  <script src="/__/firebase/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="/firebase/firebase-config.js"></script>
-
+  <!-- Firebase (dynamic data) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    // AOS
+    // ========== FIREBASE INIT ==========
+    firebase.initializeApp({
+      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+      authDomain: "maac-system.firebaseapp.com",
+      projectId: "maac-system",
+      storageBucket: "maac-system.firebasestorage.app",
+      messagingSenderId: "888172288312",
+      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+    });
+    const db = firebase.firestore();
+
+    // ========== LOAD ALL DYNAMIC CONTENT ==========
+    async function loadDynamicContent() {
+      try {
+        // Hero
+        const heroDoc = await db.collection('settings').doc('hero').get();
+        if (heroDoc.exists) {
+          const hero = heroDoc.data();
+          if (hero.heading) document.getElementById('heroHeading').innerHTML = hero.heading;
+          if (hero.subheading) document.getElementById('heroSubheading').textContent = hero.subheading;
+        }
+
+        // Stats
+        const statsDoc = await db.collection('settings').doc('stats').get();
+        if (statsDoc.exists) {
+          const stats = statsDoc.data();
+          document.getElementById('studentCount').textContent = stats.students || 0;
+          document.getElementById('teacherCount').textContent = stats.teachers || 0;
+          document.getElementById('courseCount').textContent = stats.courses || 0;
+          document.getElementById('yearCount').textContent = stats.years || 0;
+        }
+
+        // Notices
+        const noticeSnap = await db.collection('notifications').where('type', '==', 'notice').orderBy('timestamp', 'desc').limit(10).get();
+        const noticeWrapper = document.getElementById('noticeSwiper');
+        noticeWrapper.innerHTML = '';
+        if (!noticeSnap.empty) {
+          noticeSnap.forEach(doc => {
+            const n = doc.data();
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `<div class="glass" style="padding:20px; text-align:center;"><h4>${n.title}</h4><p>${n.body || ''}</p></div>`;
+            noticeWrapper.appendChild(slide);
+          });
+        } else {
+          noticeWrapper.innerHTML = '<div class="swiper-slide"><div class="glass" style="padding:20px;">কোনো নোটিশ নেই</div></div>';
+        }
+        // Re-initialize Swiper after dynamic content
+        new Swiper(".mySwiper", { slidesPerView: 1, spaceBetween: 20, pagination: { el: ".swiper-pagination", clickable: true }, autoplay: { delay: 4000 } });
+
+        // Teachers
+        const teacherSnap = await db.collection('teachers').get();
+        const teacherWrapper = document.getElementById('teacherSwiper');
+        teacherWrapper.innerHTML = '';
+        if (!teacherSnap.empty) {
+          teacherSnap.forEach(doc => {
+            const t = doc.data();
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `<div class="glass card" style="text-align:center;"><img src="${t.photo || 'https://placehold.co/100x100/1A73E8/white?text=Teacher'}" width="80" height="80" style="border-radius:50%;"><h4>${t.name}</h4><p>${t.subject}</p></div>`;
+            teacherWrapper.appendChild(slide);
+          });
+        } else {
+          teacherWrapper.innerHTML = '<div class="swiper-slide"><div class="glass">শীঘ্রই আসছে...</div></div>';
+        }
+        new Swiper(".teacherSwiper", { slidesPerView: 3, spaceBetween: 24, breakpoints: { 640: { slidesPerView: 1 }, 1024: { slidesPerView: 3 } } });
+
+        // Gallery
+        const gallerySnap = await db.collection('galleries').get();
+        const galleryWrapper = document.getElementById('gallerySwiper');
+        galleryWrapper.innerHTML = '';
+        if (!gallerySnap.empty) {
+          gallerySnap.forEach(doc => {
+            const img = doc.data();
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `<img src="${img.url}" alt="${img.caption || ''}" style="border-radius:16px; max-width:100%;">`;
+            galleryWrapper.appendChild(slide);
+          });
+        } else {
+          galleryWrapper.innerHTML = '<div class="swiper-slide"><img src="https://placehold.co/600x400/1A73E8/white?text=No+Image" style="border-radius:16px;"></div>';
+        }
+        new Swiper(".gallerySwiper", { slidesPerView: 2, spaceBetween: 16 });
+
+        // Videos
+        const videoSnap = await db.collection('videos').get();
+        const videoContainer = document.getElementById('videoContainer');
+        videoContainer.innerHTML = '';
+        if (!videoSnap.empty) {
+          videoSnap.forEach(doc => {
+            const v = doc.data();
+            videoContainer.innerHTML += `<iframe width="560" height="315" src="${v.url}" title="${v.title}" frameborder="0" allowfullscreen style="border-radius:16px; max-width:100%; margin:10px;"></iframe>`;
+          });
+        } else {
+          videoContainer.innerHTML = '<p>কোনো ভিডিও নেই</p>';
+        }
+
+      } catch (error) {
+        console.warn("Could not load dynamic content:", error);
+      }
+    }
+
+    // ========== INIT ANIMATIONS & THEME ==========
     AOS.init({ duration: 1000, once: true });
-
-    // Swiper
-    var noticeSwiper = new Swiper(".mySwiper", { slidesPerView: 1, spaceBetween: 20, pagination: { el: ".swiper-pagination", clickable: true }, autoplay: { delay: 4000 } });
-    var teacherSwiper = new Swiper(".teacherSwiper", { slidesPerView: 3, spaceBetween: 24, breakpoints: { 640: { slidesPerView: 1 }, 1024: { slidesPerView: 3 } } });
-    var gallerySwiper = new Swiper(".gallerySwiper", { slidesPerView: 2, spaceBetween: 16 });
-
-    // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
     themeToggle.addEventListener('click', () => {
       const html = document.documentElement;
@@ -286,32 +376,11 @@
       }
     });
 
-    // === DYNAMIC STATS FROM FIRESTORE ===
-    async function loadDynamicStats() {
-      try {
-        const doc = await db.collection('settings').doc('stats').get();
-        if (doc.exists) {
-          const stats = doc.data();
-          document.getElementById('studentCount').textContent = stats.students || 0;
-          document.getElementById('teacherCount').textContent = stats.teachers || 0;
-          document.getElementById('courseCount').textContent = stats.courses || 0;
-          document.getElementById('yearCount').textContent = stats.years || 0;
-        }
-      } catch (error) {
-        console.warn("Could not load dynamic stats:", error);
-      }
-    }
-
-    // Load stats on page load
-    loadDynamicStats();
-
-    // Optionally, load notices, teachers, gallery here too (if you make them dynamic)
-    // async function loadDynamicNotices() { ... }
-    // async function loadDynamicTeachers() { ... }
-    // etc.
+    // Load everything when page is ready
+    window.addEventListener('DOMContentLoaded', loadDynamicContent);
   </script>
 
-  <!-- Service Worker for PWA -->
+  <!-- Service Worker (PWA) -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
