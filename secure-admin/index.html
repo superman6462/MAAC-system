@@ -7,7 +7,6 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/assets/css/dashboard.css">
   <link rel="stylesheet" href="/assets/css/glassmorphism.css">
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -15,64 +14,26 @@
 <body>
   <div class="glass dashboard-container">
     <h1>🔧 সুপার অ্যাডমিন প্যানেল</h1>
-    <div id="superContent" style="padding:20px;">
-      <p>Loading...</p>
+    <p id="loadingMsg">লোড হচ্ছে... / Loading...</p>
+    <div id="superContent" style="display:none;">
+      <p>Logged in as: <b id="userEmail"></b></p>
+      <div class="admin-grid">
+        <nav class="sidebar glass" id="superSidebar">
+          <button data-module="dashboard">📊 ড্যাশবোর্ড</button>
+          <button data-module="website">🌐 ওয়েবসাইট</button>
+          <button data-module="users">👥 ইউজার</button>
+          <button data-module="academic">📚 একাডেমিক</button>
+          <button data-module="finance">💰 ফাইন্যান্স</button>
+          <button data-module="settings">⚙️ সেটিংস</button>
+          <button data-module="system">🛠️ সিস্টেম</button>
+        </nav>
+        <main id="dynamicContent" class="content-area glass">
+          <p>একটি মডিউল নির্বাচন করুন।</p>
+        </main>
+      </div>
     </div>
     <button onclick="logout()" style="margin:20px;">লগআউট</button>
   </div>
-
-  <script>
-    // ========== FIREBASE INIT ==========
-    if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
-        authDomain: "maac-system.firebaseapp.com",
-        projectId: "maac-system",
-        storageBucket: "maac-system.firebasestorage.app",
-        messagingSenderId: "888172288312",
-        appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
-      });
-    }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // ========== CHECK AUTH ==========
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        // Not logged in — redirect to login
-        window.location.href = '/login.html';
-        return;
-      }
-
-      // Check if user is in secure-admin collection
-      const doc = await db.collection('secure-admin').doc(user.uid).get();
-      if (!doc.exists) {
-        alert('Access denied: You are not a Super Admin.');
-        auth.signOut();
-        window.location.href = '/login.html';
-        return;
-      }
-
-      // Authorized — show panel
-      document.getElementById('superContent').innerHTML = `
-        <h3>✅ Welcome, ${user.email}</h3>
-        <div class="dashboard-grid" style="margin-top:20px;">
-          <div class="glass card" onclick="alert('Website Manager')">🌐 ওয়েবসাইট</div>
-          <div class="glass card" onclick="alert('User Manager')">👥 ইউজার</div>
-          <div class="glass card" onclick="alert('Academic')">📚 একাডেমিক</div>
-          <div class="glass card" onclick="alert('Finance')">💰 ফাইন্যান্স</div>
-          <div class="glass card" onclick="alert('Settings')">⚙️ সেটিংস</div>
-          <div class="glass card" onclick="alert('System Tools')">🛠️ সিস্টেম</div>
-        </div>
-      `;
-    });
-
-    // ========== LOGOUT ==========
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = '/login.html';
-      });
-    }
-  </script>
+  <script src="/secure-admin/super-admin.js"></script>
 </body>
 </html>
