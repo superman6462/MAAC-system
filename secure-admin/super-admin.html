@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAAC | Super Admin</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #1A73E8, #00BFA5);
+      min-height: 100vh;
+      color: #fff;
+    }
+    .header {
+      background: rgba(0,0,0,0.3);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar {
+      background: rgba(255,255,255,0.1);
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sidebar button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .sidebar button:hover { background: rgba(255,255,255,0.4); }
+    .content {
+      padding: 24px;
+      min-height: 60vh;
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 8px;
+    }
+    .grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    input, textarea, select {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin: 4px;
+      font-size: 14px;
+    }
+    button.action {
+      padding: 10px 20px;
+      background: #fff;
+      color: #1A73E8;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🔧 সুপার অ্যাডমিন প্যানেল</h2>
+    <span id="userEmail"></span>
+    <button onclick="logout()" style="padding:8px 16px; border-radius:8px; border:none; cursor:pointer;">লগআউট</button>
+  </div>
+  <div class="sidebar">
+    <button onclick="loadTab('dashboard')">📊 ড্যাশবোর্ড</button>
+    <button onclick="loadTab('website')">🌐 ওয়েবসাইট</button>
+    <button onclick="loadTab('users')">👥 ইউজার</button>
+    <button onclick="loadTab('settings')">⚙️ সেটিংস</button>
+    <button onclick="loadTab('system')">🛠️ সিস্টেম</button>
+  </div>
+  <div class="content" id="contentArea">
+    <p>লোড হচ্ছে...</p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Init Firebase
+    firebase.initializeApp({
+      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+      authDomain: "maac-system.firebaseapp.com",
+      projectId: "maac-system",
+      storageBucket: "maac-system.firebasestorage.app",
+      messagingSenderId: "888172288312",
+      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+    });
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Auth check
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/login.html'; return; }
+      const doc = await db.collection('secure-admin').doc(user.uid).get();
+      if (!doc.exists) { alert('Access denied'); auth.signOut(); window.location.href = '/login.html'; return; }
+      document.getElementById('userEmail').textContent = '👤 ' + user.email;
+      loadTab('dashboard');
+    });
+
+    function logout() {
+      auth.signOut().then(() => { window.location.href = '/login.html'; });
+    }
+
+    // ==================== TAB LOADER ====================
+    function loadTab(tab) {
+      const area = document.getElementById('contentArea');
+      switch(tab) {
+        case 'dashboard': dashboardTab(area); break;
+        case 'website': websiteTab(area); break;
+        case 'users': usersTab(area); break;
+        case 'settings': settingsTab(area); break;
+        case 'system': systemTab(area); break;
+      }
+    }
+
+    // ==================== DASHBOARD ====================
+    async function dashboardTab(area) {
+      const [stu, tea, not] = await Promise.all([
+        db.collection('students').get().then(s => s.size),
+        db.collection('teachers').get().then(s => s.size),
+        db.collection('notifications').where('type','==','notice').get().then(s => s.size)
+      ]);
+      area.innerHTML = `
+        <h3>📊 সিস্টেম ওভারভিউ</h3>
+        <div class="grid">
+          <div class="card">👥 মোট ছাত্র: <b>${stu}</b></div>
+          <div class="card">👨‍🏫 মোট শিক্ষক: <b>${tea}</b></div>
+          <div class="card">📢 নোটিশ: <b>${not}</b></div>
+        </div>
+      `;
+    }
+
+    // ==================== WEBSITE ====================
+    function websiteTab(area) {
+      area.innerHTML = `
+        <h3>🌐 ওয়েবসাইট ম্যানেজার</h3>
+        <div class="sidebar">
+          <button onclick="webSubTab('hero')">হিরো</button>
+          <button onclick="webSubTab('notices')">নোটিশ</button>
+          <button onclick="webSubTab('teachers')">শিক্ষক</button>
+          <button onclick="webSubTab('gallery')">গ্যালারি</button>
+          <button onclick="webSubTab('videos')">ভিডিও</button>
+          <button onclick="webSubTab('stats')">পরিসংখ্যান</button>
+        </div>
+        <div id="webSubContent" style="margin-top:16px;"></div>
+      `;
+      webSubTab('hero');
+    }
+
+    function webSubTab(tab) {
+      const sub = document.getElementById('webSubContent');
+      switch(tab) {
+        case 'hero':
+          sub.innerHTML = `<h4>হিরো সেকশন</h4>
+            <input id="heroH" placeholder="Heading"><br>
+            <input id="heroS" placeholder="Subheading"><br>
+            <button class="action" onclick="saveHero()">সংরক্ষণ</button>`;
+          break;
+        case 'notices':
+          loadNotices(sub);
+          break;
+        case 'teachers':
+          loadTeachers(sub);
+          break;
+        case 'gallery':
+          loadGallery(sub);
+          break;
+        case 'videos':
+          loadVideos(sub);
+          break;
+        case 'stats':
+          loadStats(sub);
+          break;
+      }
+    }
+
+    async function saveHero() {
+      await db.collection('settings').doc('hero').set({
+        heading: document.getElementById('heroH').value,
+        subheading: document.getElementById('heroS').value
+      }, { merge: true });
+      alert('Saved!');
+    }
+
+    async function loadNotices(sub) {
+      const snap = await db.collection('notifications').where('type','==','notice').orderBy('timestamp','desc').get();
+      let list = '';
+      snap.forEach(doc => {
+        const n = doc.data();
+        list += `<div class="card"><b>${n.title}</b> <button class="action" onclick="del('notifications','${doc.id}')">❌</button></div>`;
+      });
+      sub.innerHTML = `
+        <h4>নোটিশ</h4>
+        <input id="nTitle" placeholder="Title"><br>
+        <textarea id="nBody" placeholder="Body"></textarea><br>
+        <button class="action" onclick="addNotice()">Add</button>
+        <div style="margin-top:12px;">${list || 'None'}</div>`;
+    }
+    async function addNotice() {
+      await db.collection('notifications').add({
+        title: document.getElementById('nTitle').value,
+        body: document.getElementById('nBody').value,
+        type: 'notice',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert('Added');
+      loadNotices(document.getElementById('webSubContent'));
+    }
+
+    async function loadTeachers(sub) {
+      const snap = await db.collection('teachers').get();
+      let list = '';
+      snap.forEach(doc => {
+        const t = doc.data();
+        list += `<div class="card">${t.name} - ${t.subject} <button class="action" onclick="del('teachers','${doc.id}')">❌</button></div>`;
+      });
+      sub.innerHTML = `
+        <h4>শিক্ষক</h4>
+        <input id="tName" placeholder="Name">
+        <input id="tSub" placeholder="Subject">
+        <input id="tPhoto" placeholder="Photo URL">
+        <button class="action" onclick="addTeacher()">Add</button>
+        <div style="margin-top:12px;">${list || 'None'}</div>`;
+    }
+    async function addTeacher() {
+      await db.collection('teachers').add({
+        name: document.getElementById('tName').value,
+        subject: document.getElementById('tSub').value,
+        photo: document.getElementById('tPhoto').value
+      });
+      alert('Added');
+      loadTeachers(document.getElementById('webSubContent'));
+    }
+
+    async function loadGallery(sub) {
+      const snap = await db.collection('galleries').get();
+      let list = '';
+      snap.forEach(doc => {
+        const g = doc.data();
+        list += `<img src="${g.url}" width="80" style="margin:4px;"> <button class="action" onclick="del('galleries','${doc.id}')">❌</button>`;
+      });
+      sub.innerHTML = `
+        <h4>গ্যালারি</h4>
+        <input id="gUrl" placeholder="Image URL">
+        <input id="gCap" placeholder="Caption">
+        <button class="action" onclick="addImage()">Add</button>
+        <div style="margin-top:12px;">${list || 'None'}</div>`;
+    }
+    async function addImage() {
+      await db.collection('galleries').add({
+        url: document.getElementById('gUrl').value,
+        caption: document.getElementById('gCap').value,
+        uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert('Added');
+      loadGallery(document.getElementById('webSubContent'));
+    }
+
+    async function loadVideos(sub) {
+      const snap = await db.collection('videos').get();
+      let list = '';
+      snap.forEach(doc => {
+        const v = doc.data();
+        list += `<div class="card">${v.title} <button class="action" onclick="del('videos','${doc.id}')">❌</button></div>`;
+      });
+      sub.innerHTML = `
+        <h4>ভিডিও</h4>
+        <input id="vTitle" placeholder="Title">
+        <input id="vUrl" placeholder="YouTube URL">
+        <button class="action" onclick="addVideo()">Add</button>
+        <div style="margin-top:12px;">${list || 'None'}</div>`;
+    }
+    async function addVideo() {
+      await db.collection('videos').add({
+        title: document.getElementById('vTitle').value,
+        url: document.getElementById('vUrl').value
+      });
+      alert('Added');
+      loadVideos(document.getElementById('webSubContent'));
+    }
+
+    async function loadStats(sub) {
+      const doc = await db.collection('settings').doc('stats').get();
+      const s = doc.exists ? doc.data() : { students:0, teachers:0, courses:0, years:0 };
+      sub.innerHTML = `
+        <h4>হোমপেজ পরিসংখ্যান</h4>
+        <label>ছাত্র: <input id="stStu" type="number" value="${s.students}"></label><br>
+        <label>শিক্ষক: <input id="stTea" type="number" value="${s.teachers}"></label><br>
+        <label>কোর্স: <input id="stCou" type="number" value="${s.courses}"></label><br>
+        <label>অভিজ্ঞতা: <input id="stYea" type="number" value="${s.years}"></label><br>
+        <button class="action" onclick="saveStats()">সংরক্ষণ</button>`;
+    }
+    async function saveStats() {
+      await db.collection('settings').doc('stats').set({
+        students: +document.getElementById('stStu').value,
+        teachers: +document.getElementById('stTea').value,
+        courses: +document.getElementById('stCou').value,
+        years: +document.getElementById('stYea').value
+      });
+      alert('Stats saved');
+    }
+
+    async function del(coll, id) {
+      if (confirm('Delete?')) {
+        await db.collection(coll).doc(id).delete();
+        alert('Deleted');
+        // Refresh current sub tab
+        const sub = document.getElementById('webSubContent');
+        const currentBtn = document.querySelector('.sidebar button.active');
+        if (currentBtn) webSubTab(currentBtn.textContent.toLowerCase());
+      }
+    }
+
+    // ==================== USERS ====================
+    async function usersTab(area) {
+      area.innerHTML = `
+        <h3>👥 ইউজার ম্যানেজমেন্ট</h3>
+        <select id="roleSelect">
+          <option value="students">ছাত্র</option>
+          <option value="teachers">শিক্ষক</option>
+        </select>
+        <button class="action" onclick="listUsers()">তালিকা</button>
+        <button class="action" onclick="addUserForm()">+ নতুন</button>
+        <div id="userArea" style="margin-top:16px;"></div>`;
+    }
+
+    async function listUsers() {
+      const role = document.getElementById('roleSelect').value;
+      const snap = await db.collection(role).get();
+      let html = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        html += `<div class="card">${d.name || d.email || doc.id} <button class="action" onclick="del('${role}','${doc.id}')">❌</button></div>`;
+      });
+      document.getElementById('userArea').innerHTML = html || 'None';
+    }
+
+    function addUserForm() {
+      const role = document.getElementById('roleSelect').value;
+      const area = document.getElementById('userArea');
+      if (role === 'students') {
+        area.innerHTML = `
+          <input id="sId" placeholder="ID"><input id="sName" placeholder="Name"><input id="sClass" placeholder="Class"><input type="password" id="sPass" placeholder="Password">
+          <button class="action" onclick="addStudent()">তৈরি</button>`;
+      } else {
+        area.innerHTML = `
+          <input id="tId" placeholder="ID"><input id="tName" placeholder="Name"><input id="tSub" placeholder="Subject"><input type="password" id="tPass" placeholder="Password">
+          <button class="action" onclick="addTeacherUser()">তৈরি</button>`;
+      }
+    }
+
+    async function addStudent() {
+      await db.collection('students').doc(document.getElementById('sId').value).set({
+        name: document.getElementById('sName').value,
+        class: document.getElementById('sClass').value,
+        password: document.getElementById('sPass').value,
+        activeStatus: true
+      });
+      alert('Created'); listUsers();
+    }
+
+    async function addTeacherUser() {
+      await db.collection('teachers').doc(document.getElementById('tId').value).set({
+        name: document.getElementById('tName').value,
+        subject: document.getElementById('tSub').value,
+        password: document.getElementById('tPass').value
+      });
+      alert('Created'); listUsers();
+    }
+
+    // ==================== SETTINGS ====================
+    async function settingsTab(area) {
+      const doc = await db.collection('settings').doc('site').get();
+      const s = doc.exists ? doc.data() : {};
+      area.innerHTML = `
+        <h3>⚙️ সাইট সেটিংস</h3>
+        <label>নাম: <input id="sName" value="${s.name || ''}"></label><br>
+        <label>ফোন: <input id="sPhone" value="${s.phone || ''}"></label><br>
+        <label>ইমেইল: <input id="sEmail" value="${s.email || ''}"></label><br>
+        <label>ঠিকানা: <input id="sAddr" value="${s.address || ''}"></label><br>
+        <label>ফেসবুক: <input id="sFB" value="${s.facebook || ''}"></label><br>
+        <label>ইউটিউব: <input id="sYT" value="${s.youtube || ''}"></label><br>
+        <label>ম্যাপ: <input id="sMap" value="${s.map || ''}"></label><br>
+        <button class="action" onclick="saveSiteSettings()">সংরক্ষণ</button>`;
+    }
+
+    async function saveSiteSettings() {
+      await db.collection('settings').doc('site').set({
+        name: document.getElementById('sName').value,
+        phone: document.getElementById('sPhone').value,
+        email: document.getElementById('sEmail').value,
+        address: document.getElementById('sAddr').value,
+        facebook: document.getElementById('sFB').value,
+        youtube: document.getElementById('sYT').value,
+        map: document.getElementById('sMap').value
+      });
+      alert('Settings saved');
+    }
+
+    // ==================== SYSTEM ====================
+    function systemTab(area) {
+      area.innerHTML = `
+        <h3>🛠️ সিস্টেম টুলস</h3>
+        <button class="action" onclick="alert('Coming soon')">🏆 লিডারবোর্ড আপডেট</button>
+        <button class="action" onclick="alert('Coming soon')">📋 লগ</button>`;
+    }
+  </script>
+</body>
+</html>
