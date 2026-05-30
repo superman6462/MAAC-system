@@ -107,7 +107,7 @@
         .then(() => {
           status.textContent = '✅ Success! Redirecting...';
           status.className = 'success';
-          setTimeout(() => { window.location.href = '/secure-admin/'; }, 800);
+          setTimeout(() => { window.location.href = '/secure-admin/super-admin.html'; }, 800);
         })
         .catch(err => {
           status.textContent = '❌ ' + err.message;
