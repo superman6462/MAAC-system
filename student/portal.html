@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAAC | Student Dashboard</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #1A73E8, #00BFA5);
+      min-height: 100vh;
+      color: #fff;
+    }
+    .header {
+      background: rgba(0,0,0,0.3);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .content { padding: 20px; }
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    button { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>📚 স্টুডেন্ট ড্যাশবোর্ড</h2>
+    <span id="studentName"></span>
+    <button onclick="logout()">লগআউট</button>
+  </div>
+  <div class="content" id="dashboardContent">
+    <p>লোড হচ্ছে...</p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ========== CHECK LOGIN ==========
+    const userData = sessionStorage.getItem('studentUser');
+    if (!userData) {
+      window.location.href = '/student-login.html';
+    }
+    const student = JSON.parse(userData);
+
+    firebase.initializeApp({
+      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+      authDomain: "maac-system.firebaseapp.com",
+      projectId: "maac-system",
+      storageBucket: "maac-system.firebasestorage.app",
+      messagingSenderId: "888172288312",
+      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+    });
+    const db = firebase.firestore();
+
+    document.getElementById('studentName').textContent = '👤 ' + student.name;
+
+    function logout() {
+      sessionStorage.removeItem('studentUser');
+      window.location.href = '/student-login.html';
+    }
+
+    // ========== LOAD DASHBOARD ==========
+    async function loadDashboard() {
+      const content = document.getElementById('dashboardContent');
+      content.innerHTML = '<p>তথ্য লোড হচ্ছে...</p>';
+
+      // Get attendance %
+      let attPercent = 0;
+      try {
+        const attSnap = await db.collection('attendance')
+          .where('studentId', '==', student.id)
+          .get();
+        const total = attSnap.size;
+        let present = 0;
+        attSnap.forEach(doc => { if (doc.data().status === 'present') present++; });
+        attPercent = total ? Math.round((present / total) * 100) : 0;
+      } catch(e) { console.error(e); }
+
+      // Get homework list
+      let homeworkHtml = '';
+      try {
+        const hwSnap = await db.collection('homework')
+          .where('classId', '==', student.class)
+          .orderBy('assignedAt', 'desc')
+          .limit(5)
+          .get();
+        hwSnap.forEach(doc => {
+          const hw = doc.data();
+          homeworkHtml += `<div class="card"><b>${hw.subject}</b><br>${hw.details}<br><small>Due: ${hw.dueDate}</small></div>`;
+        });
+        if (!homeworkHtml) homeworkHtml = '<p>কোনো হোমওয়ার্ক নেই</p>';
+      } catch(e) { console.error(e); }
+
+      // Get leaderboard position
+      let rank = 'N/A';
+      try {
+        const lbSnap = await db.collection('leaderboards')
+          .where('studentId', '==', student.id)
+          .orderBy('rank')
+          .limit(1)
+          .get();
+        if (!lbSnap.empty) {
+          rank = lbSnap.docs[0].data().rank;
+        }
+      } catch(e) { console.error(e); }
+
+      content.innerHTML = `
+        <div class="card">
+          <h3>উপস্থিতি: ${attPercent}%</h3>
+        </div>
+        <div class="card">
+          <h3>🏆 সাপ্তাহিক র‌্যাঙ্ক: ${rank}</h3>
+        </div>
+        <div class="card">
+          <h3>📝 আসন্ন হোমওয়ার্ক</h3>
+          ${homeworkHtml}
+        </div>`;
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
