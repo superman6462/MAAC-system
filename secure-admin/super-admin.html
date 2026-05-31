@@ -22,6 +22,8 @@
   </style>
   <!-- Google API for OAuth -->
   <script src="https://apis.google.com/js/api.js"></script>
+  <!-- html5-qrcode for QR scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 
@@ -43,6 +45,7 @@
     <button data-tab="users">👥 ইউজার</button>
     <button data-tab="settings">⚙️ সেটিংস</button>
     <button data-tab="system">🛠️ সিস্টেম</button>
+    <button data-tab="attendance">📋 Attendance</button>
   </div>
   <div class="content" id="contentArea"></div>
 </div>
@@ -106,7 +109,6 @@
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error.message);
-    // Make file public
     await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
       method: 'POST',
       headers: new Headers({ 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' }),
@@ -182,6 +184,13 @@
       case 'users': usersTab(area); break;
       case 'settings': settingsTab(area); break;
       case 'system': systemTab(area); break;
+      case 'attendance':
+        if (typeof showAttendanceTab === 'function') {
+          showAttendanceTab(area);
+        } else {
+          area.innerHTML = '<p>Attendance module loading...</p>';
+        }
+        break;
     }
   }
 
@@ -260,7 +269,7 @@
     alert('Added'); loadNotices(document.getElementById('webSub'));
   }
 
-  // ==================== TEACHERS (with Drive upload) ====================
+  // ==================== TEACHERS ====================
   async function loadTeachers(sub) {
     const snap = await db.collection('teachers').get();
     let list = '';
@@ -284,7 +293,7 @@
     alert('Teacher added'); loadTeachers(document.getElementById('webSub'));
   }
 
-  // ==================== GALLERY (with Drive upload) ====================
+  // ==================== GALLERY ====================
   async function loadGallery(sub) {
     const snap = await db.collection('galleries').get();
     let list = '';
@@ -314,7 +323,7 @@
       const v = doc.data();
       list += `<div class="card">${v.title} <button class="action" onclick="del('videos','${doc.id}');loadVideos(document.getElementById('webSub'));">❌</button></div>`;
     });
-    sub.innerHTML = `<h4>ভিডিও</h4><input id="vTitle" placeholder="Title"><br><input id="vUrl" placeholder="YouTube Embed URL (e.g., https://www.youtube.com/embed/...)"><br><button class="action" onclick="addVideo()">Add Video</button><div style="margin-top:12px;">${list||'None'}</div>`;
+    sub.innerHTML = `<h4>ভিডিও</h4><input id="vTitle" placeholder="Title"><br><input id="vUrl" placeholder="YouTube Embed URL"><br><button class="action" onclick="addVideo()">Add Video</button><div style="margin-top:12px;">${list||'None'}</div>`;
   }
 
   async function addVideo() {
@@ -437,5 +446,8 @@
       <button class="action" onclick="alert('Coming soon')">📋 লগ</button>`;
   }
 </script>
+
+<!-- Load Attendance Module -->
+<script src="/secure-admin/attendance-module.js"></script>
 </body>
 </html>
