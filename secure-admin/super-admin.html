@@ -81,6 +81,8 @@
           accessToken = authInstance.currentUser.get().getAuthResponse().access_token;
           document.getElementById('driveBtn').textContent = '✅ Drive Connected';
           document.getElementById('driveBtn').disabled = true;
+        } else {
+          document.getElementById('driveBtn').disabled = false;  // enable the button
         }
       });
     });
@@ -88,12 +90,23 @@
 
   function handleDriveAuth() {
     const authInstance = gapi.auth2.getAuthInstance();
+    if (!authInstance) {
+      alert('Google API not ready yet. Please wait a few seconds and try again.');
+      return;
+    }
     authInstance.signIn().then(user => {
       accessToken = user.getAuthResponse().access_token;
       document.getElementById('driveBtn').textContent = '✅ Drive Connected';
       document.getElementById('driveBtn').disabled = true;
       alert('Google Drive connected!');
-    }).catch(e => alert('Drive auth failed: ' + e.message));
+    }).catch(e => {
+      console.error('Drive sign-in error:', e);
+      let msg = 'Drive auth failed';
+      if (e.error) msg += ': ' + e.error;
+      else if (e.message) msg += ': ' + e.message;
+      else msg += ': ' + JSON.stringify(e).slice(0, 100);
+      alert(msg);
+    });
   }
 
   async function uploadToDrive(file) {
