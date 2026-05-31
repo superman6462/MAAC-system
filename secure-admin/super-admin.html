@@ -413,9 +413,7 @@
 
   <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <!-- Google API Client (for Drive uploads only — NOT auth2) -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <!-- NEW: Google Identity Services (replaces deprecated gapi.auth2) -->
+  <!-- Google Identity Services — handles Drive OAuth automatically -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -525,9 +523,9 @@
           <h1 class="page-title" id="pageTitle">Dashboard</h1>
         </div>
         <div class="topbar-right">
-          <button class="drive-btn" id="driveBtn" onclick="handleDriveAuth()">
-            <i class="fab fa-google-drive"></i> Connect Drive
-          </button>
+          <div class="drive-btn connected" id="driveStatus" style="pointer-events:none; opacity:0.5;">
+            <i class="fab fa-google-drive"></i> <span id="driveStatusText">Connecting Drive…</span>
+          </div>
         </div>
       </header>
 
@@ -561,82 +559,95 @@ const auth = firebase.auth();
 const db   = firebase.firestore();
 
 /* ============================================================
-   GOOGLE DRIVE — using NEW Google Identity Services (GIS)
-   gapi.auth2 is deprecated and causes server_error.
-   We now use google.accounts.oauth2.initTokenClient instead.
+   GOOGLE DRIVE — AUTO CONNECT (no button)
+   Strategy: Firebase already signed the admin in with Google.
+   We reuse that Google account silently via GIS token client
+   with prompt:'' so no popup ever appears.
+   Client ID: from client_secret JSON (web app credential)
 ============================================================ */
-const GOOGLE_CLIENT_ID = '888172288312-tce288fthu55003cofgdgnlj1426ddch.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '888172288312-c336gfvpfm1q2qglmrcb9of1tj6jktct.apps.googleusercontent.com';
 const DRIVE_FOLDER_ID  = '17TkAb01lkQLseNzVpWkpUm-L-ZZkgRe-';
 let accessToken        = null;
 let tokenClient        = null;
-let _pendingUploadResolve = null;
-let _pendingUploadReject  = null;
+let _driveReady        = false;
 
-// Called once GIS script is ready (it loads async)
-function initGoogleAPI() {
-  // GIS is loaded via <script src="https://accounts.google.com/gsi/client">
-  // We initialize the token client lazily on first click (avoids race conditions)
+// Queue of { resolve, reject } pairs waiting for Drive to be ready
+const _driveQueue = [];
+
+function setDriveStatus(text, connected) {
+  const el = document.getElementById('driveStatus');
+  const tx = document.getElementById('driveStatusText');
+  if (!el || !tx) return;
+  tx.textContent = text;
+  el.style.opacity = connected ? '1' : '0.5';
+  if (connected) el.classList.add('connected');
+  else el.classList.remove('connected');
 }
 
-function getTokenClient() {
-  if (tokenClient) return tokenClient;
-  if (typeof google === 'undefined' || !google.accounts) {
-    showToast('Google Identity Services not loaded yet. Please wait a moment and try again.', 'error');
-    return null;
-  }
+// Called automatically after Firebase confirms the admin user
+function autoConnectDrive(userEmail) {
+  // Wait for GIS script to load (it's async), poll briefly
+  const tryInit = (attempts) => {
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+      initTokenClient(userEmail);
+    } else if (attempts > 0) {
+      setTimeout(() => tryInit(attempts - 1), 300);
+    } else {
+      setDriveStatus('Drive unavailable', false);
+    }
+  };
+  tryInit(20); // up to 6 seconds
+}
+
+function initTokenClient(userEmail) {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/drive.file',
+    // hint: pre-fills the account so user never has to choose
+    hint: userEmail || '',
     callback: (tokenResponse) => {
       if (tokenResponse.error) {
-        showToast('Drive auth failed: ' + tokenResponse.error, 'error');
-        if (_pendingUploadReject) { _pendingUploadReject(new Error(tokenResponse.error)); _pendingUploadReject = null; }
+        // Silent attempt failed — Drive won't work but admin can still use other features
+        console.warn('Drive silent auth failed:', tokenResponse.error);
+        setDriveStatus('Drive: re-login needed', false);
+        // Flush queue with error
+        _driveQueue.forEach(({ reject }) => reject(new Error(tokenResponse.error)));
+        _driveQueue.length = 0;
         return;
       }
       accessToken = tokenResponse.access_token;
-      setDriveConnected();
-      showToast('Google Drive connected!', 'success');
-      // If there was a pending upload waiting for auth, resume it
-      if (_pendingUploadResolve) { _pendingUploadResolve(); _pendingUploadResolve = null; }
+      _driveReady = true;
+      setDriveStatus('Drive Connected', true);
+      // Flush any queued upload promises
+      _driveQueue.forEach(({ resolve }) => resolve());
+      _driveQueue.length = 0;
     },
     error_callback: (err) => {
-      // User closed the popup or other non-OAuth error
-      const msg = err.type === 'popup_closed' ? 'Popup closed — please try again.' : ('Drive error: ' + (err.message || err.type || 'Unknown'));
-      showToast(msg, 'error');
-      if (_pendingUploadReject) { _pendingUploadReject(new Error(msg)); _pendingUploadReject = null; }
+      // Non-OAuth errors (e.g. popup blocked — but we use prompt:'' so no popup)
+      console.warn('Drive GIS error:', err);
+      setDriveStatus('Drive unavailable', false);
+      _driveQueue.forEach(({ reject }) => reject(new Error(err.type || 'Drive error')) );
+      _driveQueue.length = 0;
     }
   });
-  return tokenClient;
+
+  // Request token silently — prompt:'' means:
+  // if user already granted Drive scope to this client → no popup, instant token
+  // if not yet granted → will open a one-time consent popup (only first time)
+  tokenClient.requestAccessToken({ prompt: '' });
 }
 
-function handleDriveAuth() {
-  const client = getTokenClient();
-  if (!client) return;
-  // If we already have a valid token just confirm
-  if (accessToken) { showToast('Drive is already connected!', 'success'); return; }
-  client.requestAccessToken({ prompt: 'consent' });
+// Returns a Promise — resolves when Drive is ready, or immediately if already ready
+function waitForDrive() {
+  if (_driveReady && accessToken) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    _driveQueue.push({ resolve, reject });
+  });
 }
 
-function setDriveConnected() {
-  const btn = document.getElementById('driveBtn');
-  if (!btn) return;
-  btn.innerHTML = '<i class="fab fa-google-drive"></i> Drive Connected';
-  btn.classList.add('connected');
-  btn.onclick = null;
-}
-
-// Returns a Promise that resolves with the public Drive URL of the uploaded file
+// Upload file to Drive, waiting for auth if needed
 async function uploadToDrive(file) {
-  // If no token yet, request one first, then upload
-  if (!accessToken) {
-    await new Promise((resolve, reject) => {
-      _pendingUploadResolve = resolve;
-      _pendingUploadReject  = reject;
-      const client = getTokenClient();
-      if (!client) { reject(new Error('GIS not ready')); return; }
-      client.requestAccessToken({ prompt: '' }); // '' = no consent screen if already granted
-    });
-  }
+  await waitForDrive();
 
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify({ name: file.name, parents: [DRIVE_FOLDER_ID] })], { type: 'application/json' }));
@@ -648,13 +659,20 @@ async function uploadToDrive(file) {
     body: form
   });
   const data = await res.json();
+
   if (!res.ok) {
-    // Token may have expired — clear and throw so caller can retry
-    if (res.status === 401) { accessToken = null; setDriveDisconnected(); }
+    if (res.status === 401) {
+      // Token expired — clear and retry once with a fresh token
+      accessToken = null; _driveReady = false;
+      setDriveStatus('Drive: refreshing…', false);
+      autoConnectDrive();
+      await waitForDrive();
+      return uploadToDrive(file); // retry
+    }
     throw new Error(data.error?.message || 'Upload failed (HTTP ' + res.status + ')');
   }
 
-  // Make file publicly readable
+  // Make publicly readable
   await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
@@ -662,14 +680,6 @@ async function uploadToDrive(file) {
   });
 
   return `https://drive.google.com/uc?export=view&id=${data.id}`;
-}
-
-function setDriveDisconnected() {
-  const btn = document.getElementById('driveBtn');
-  if (!btn) return;
-  btn.innerHTML = '<i class="fab fa-google-drive"></i> Connect Drive';
-  btn.classList.remove('connected');
-  btn.onclick = handleDriveAuth;
 }
 
 /* ============================================================
@@ -730,8 +740,8 @@ function showPanel(user) {
   document.getElementById('userEmail').textContent = user.email;
   document.getElementById('userInitial').textContent = (user.email || 'A')[0].toUpperCase();
 
-  // GIS (Google Identity Services) initializes itself via the script tag.
-  // Token client is created lazily on first Drive button click.
+  // Auto-connect Drive silently using the admin's Google account
+  autoConnectDrive(user.email);
   setupSidebar();
   loadTab('dashboard');
   loadNoticeBadge();
