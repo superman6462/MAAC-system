@@ -8,7 +8,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: sans-serif; background: linear-gradient(135deg, #1A73E8, #00BFA5); min-height: 100vh; color: #fff; }
-    .header { background: rgba(0,0,0,0.3); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .header { background: rgba(0,0,0,0.3); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .sidebar { background: rgba(255,255,255,0.1); padding: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
     .sidebar button { padding: 10px 14px; border: none; border-radius: 8px; background: rgba(255,255,255,0.2); color: #fff; cursor: pointer; font-size: 14px; }
     .sidebar button.active, .sidebar button:hover { background: rgba(255,255,255,0.5); }
@@ -20,6 +20,8 @@
     #loadingScreen { text-align: center; padding: 80px 20px; }
     #mainPanel { display: none; }
   </style>
+  <!-- Google API for OAuth -->
+  <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
 
@@ -32,6 +34,7 @@
   <div class="header">
     <h2>🔧 সুপার অ্যাডমিন</h2>
     <span id="userEmail"></span>
+    <button id="driveBtn" onclick="handleDriveAuth()" style="padding:8px 16px; border-radius:8px; border:none; cursor:pointer; background:#fff; color:#1A73E8; font-weight:bold;">🔗 Connect Google Drive</button>
     <button onclick="logout()" style="padding:8px 16px; border-radius:8px; border:none; cursor:pointer;">লগআউট</button>
   </div>
   <div class="sidebar" id="sidebarNav">
@@ -44,6 +47,7 @@
   <div class="content" id="contentArea"></div>
 </div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -61,9 +65,59 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  let panelShown = false;
+  // ========== GOOGLE DRIVE SETUP ==========
+  const GOOGLE_CLIENT_ID = '888172288312-tce288fthu55003cofgdgnlj1426ddch.apps.googleusercontent.com';
+  const DRIVE_FOLDER_ID = '17TkAb01lkQLseNzVpWkpUm-L-ZZkgRe-';
+  let accessToken = null;
+
+  function initGoogleAPI() {
+    gapi.load('client:auth2', () => {
+      gapi.auth2.init({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file' }).then(() => {
+        const authInstance = gapi.auth2.getAuthInstance();
+        if (authInstance.isSignedIn.get()) {
+          accessToken = authInstance.currentUser.get().getAuthResponse().access_token;
+          document.getElementById('driveBtn').textContent = '✅ Drive Connected';
+          document.getElementById('driveBtn').disabled = true;
+        }
+      });
+    });
+  }
+
+  function handleDriveAuth() {
+    const authInstance = gapi.auth2.getAuthInstance();
+    authInstance.signIn().then(user => {
+      accessToken = user.getAuthResponse().access_token;
+      document.getElementById('driveBtn').textContent = '✅ Drive Connected';
+      document.getElementById('driveBtn').disabled = true;
+      alert('Google Drive connected!');
+    }).catch(e => alert('Drive auth failed: ' + e.message));
+  }
+
+  async function uploadToDrive(file) {
+    if (!accessToken) throw new Error('Google Drive not connected. Click "Connect Google Drive" first.');
+    const metadata = { name: file.name, parents: [DRIVE_FOLDER_ID] };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', file);
+    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+      body: form
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error.message);
+    // Make file public
+    await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
+      method: 'POST',
+      headers: new Headers({ 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ role: 'reader', type: 'anyone' })
+    });
+    return `https://drive.google.com/uc?export=view&id=${data.id}`;
+  }
 
   // ========== AUTH CHECK ==========
+  let panelShown = false;
+
   function redirectToLogin() {
     window.location.href = '/login.html';
   }
@@ -89,6 +143,7 @@
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('mainPanel').style.display = 'block';
     document.getElementById('userEmail').textContent = '👤 ' + user.email;
+    initGoogleAPI();
     loadTab('dashboard');
     document.querySelectorAll('#sidebarNav button').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -99,27 +154,20 @@
     });
   }
 
-  // Immediate check
   const currentUser = auth.currentUser;
   if (currentUser) {
     checkAccess(currentUser);
   } else {
     const unsubscribe = auth.onAuthStateChanged(user => {
       unsubscribe();
-      if (user) {
-        checkAccess(user);
-      } else {
-        redirectToLogin();
-      }
+      if (user) checkAccess(user);
+      else redirectToLogin();
     });
   }
 
-  // Fallback timeout
   setTimeout(() => {
-    if (!panelShown && !auth.currentUser) {
-      redirectToLogin();
-    }
-  }, 3000);
+    if (!panelShown && !auth.currentUser) redirectToLogin();
+  }, 4000);
 
   function logout() {
     auth.signOut().then(() => { window.location.href = '/login.html'; });
@@ -175,7 +223,7 @@
   function webSub(tab) {
     const sub = document.getElementById('webSub');
     switch(tab) {
-      case 'hero': sub.innerHTML = `<h4>হিরো সেকশন</h4><input id="heroH" placeholder="Heading"><br><input id="heroS" placeholder="Subheading"><br><button class="action" onclick="saveHero()">সংরক্ষণ</button>`; break;
+      case 'hero': sub.innerHTML = `<h4>হিরো সেকশন</h4><input id="heroH" placeholder="Heading (HTML allowed)"><br><input id="heroS" placeholder="Subheading"><br><button class="action" onclick="saveHero()">সংরক্ষণ</button>`; break;
       case 'notices': loadNotices(sub); break;
       case 'teachers': loadTeachers(sub); break;
       case 'gallery': loadGallery(sub); break;
@@ -199,7 +247,7 @@
       const n = doc.data();
       list += `<div class="card"><b>${n.title}</b><br><small>${n.body||''}</small><br><button class="action" onclick="del('notifications','${doc.id}');loadNotices(document.getElementById('webSub'));">❌ Delete</button></div>`;
     });
-    sub.innerHTML = `<h4>নোটিশ</h4><input id="nTitle" placeholder="Title"><br><textarea id="nBody" placeholder="Body"></textarea><br><button class="action" onclick="addNotice()">Add</button><div style="margin-top:12px;">${list||'None'}</div>`;
+    sub.innerHTML = `<h4>নোটিশ</h4><input id="nTitle" placeholder="Title"><br><textarea id="nBody" placeholder="Body"></textarea><br><button class="action" onclick="addNotice()">Add Notice</button><div style="margin-top:12px;">${list||'None'}</div>`;
   }
 
   async function addNotice() {
@@ -212,25 +260,31 @@
     alert('Added'); loadNotices(document.getElementById('webSub'));
   }
 
+  // ==================== TEACHERS (with Drive upload) ====================
   async function loadTeachers(sub) {
     const snap = await db.collection('teachers').get();
     let list = '';
     snap.forEach(doc => {
       const t = doc.data();
-      list += `<div class="card">${t.name} - ${t.subject} <button class="action" onclick="del('teachers','${doc.id}');loadTeachers(document.getElementById('webSub'));">❌</button></div>`;
+      list += `<div class="card">${t.photo ? `<img src="${t.photo}" width="40" style="border-radius:50%; margin-right:8px;">` : ''} ${t.name} - ${t.subject} <button class="action" onclick="del('teachers','${doc.id}');loadTeachers(document.getElementById('webSub'));">❌</button></div>`;
     });
-    sub.innerHTML = `<h4>শিক্ষক</h4><input id="tName" placeholder="Name"><input id="tSub" placeholder="Subject"><input id="tPhoto" placeholder="Photo URL"><button class="action" onclick="addTeacher()">Add</button><div style="margin-top:12px;">${list||'None'}</div>`;
+    sub.innerHTML = `<h4>শিক্ষক</h4><input id="tName" placeholder="Name"><br><input id="tSub" placeholder="Subject"><br><input type="file" id="tPhotoFile" accept="image/*"><br><button class="action" onclick="addTeacher()">Add Teacher</button><div style="margin-top:12px;">${list||'None'}</div>`;
   }
 
   async function addTeacher() {
-    await db.collection('teachers').add({
-      name: document.getElementById('tName').value,
-      subject: document.getElementById('tSub').value,
-      photo: document.getElementById('tPhoto').value
-    });
-    alert('Added'); loadTeachers(document.getElementById('webSub'));
+    const name = document.getElementById('tName').value;
+    const subject = document.getElementById('tSub').value;
+    const file = document.getElementById('tPhotoFile').files[0];
+    let photoURL = '';
+    if (file) {
+      try { photoURL = await uploadToDrive(file); }
+      catch(e) { alert('Upload failed: ' + e.message); return; }
+    }
+    await db.collection('teachers').add({ name, subject, photo: photoURL });
+    alert('Teacher added'); loadTeachers(document.getElementById('webSub'));
   }
 
+  // ==================== GALLERY (with Drive upload) ====================
   async function loadGallery(sub) {
     const snap = await db.collection('galleries').get();
     let list = '';
@@ -238,18 +292,21 @@
       const g = doc.data();
       list += `<img src="${g.url}" width="100" style="margin:4px; border-radius:8px;"> <button class="action" onclick="del('galleries','${doc.id}');loadGallery(document.getElementById('webSub'));">❌</button>`;
     });
-    sub.innerHTML = `<h4>গ্যালারি</h4><input id="gUrl" placeholder="Image URL"><input id="gCap" placeholder="Caption"><button class="action" onclick="addImage()">Add</button><div style="margin-top:12px;">${list||'None'}</div>`;
+    sub.innerHTML = `<h4>গ্যালারি</h4><input type="file" id="gFile" accept="image/*"><br><input id="gCap" placeholder="Caption"><br><button class="action" onclick="addImage()">Add Image</button><div style="margin-top:12px;">${list||'None'}</div>`;
   }
 
   async function addImage() {
-    await db.collection('galleries').add({
-      url: document.getElementById('gUrl').value,
-      caption: document.getElementById('gCap').value,
-      uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    alert('Added'); loadGallery(document.getElementById('webSub'));
+    const file = document.getElementById('gFile').files[0];
+    const caption = document.getElementById('gCap').value;
+    if (!file) { alert('Select an image'); return; }
+    let url;
+    try { url = await uploadToDrive(file); }
+    catch(e) { alert('Upload failed: ' + e.message); return; }
+    await db.collection('galleries').add({ url, caption, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    alert('Image added'); loadGallery(document.getElementById('webSub'));
   }
 
+  // ==================== VIDEOS ====================
   async function loadVideos(sub) {
     const snap = await db.collection('videos').get();
     let list = '';
@@ -257,7 +314,7 @@
       const v = doc.data();
       list += `<div class="card">${v.title} <button class="action" onclick="del('videos','${doc.id}');loadVideos(document.getElementById('webSub'));">❌</button></div>`;
     });
-    sub.innerHTML = `<h4>ভিডিও</h4><input id="vTitle" placeholder="Title"><input id="vUrl" placeholder="YouTube URL"><button class="action" onclick="addVideo()">Add</button><div style="margin-top:12px;">${list||'None'}</div>`;
+    sub.innerHTML = `<h4>ভিডিও</h4><input id="vTitle" placeholder="Title"><br><input id="vUrl" placeholder="YouTube Embed URL (e.g., https://www.youtube.com/embed/...)"><br><button class="action" onclick="addVideo()">Add Video</button><div style="margin-top:12px;">${list||'None'}</div>`;
   }
 
   async function addVideo() {
@@ -320,9 +377,9 @@
     const role = document.getElementById('roleSelect').value;
     const area = document.getElementById('userArea');
     if (role === 'students') {
-      area.innerHTML = `<input id="sId" placeholder="ID"><input id="sName" placeholder="Name"><input id="sClass" placeholder="Class"><input type="password" id="sPass" placeholder="Password"><button class="action" onclick="addStudent()">তৈরি</button>`;
+      area.innerHTML = `<input id="sId" placeholder="Student ID"><input id="sName" placeholder="Name"><input id="sClass" placeholder="Class"><input type="password" id="sPass" placeholder="Password"><button class="action" onclick="addStudent()">Create Student</button>`;
     } else {
-      area.innerHTML = `<input id="tId" placeholder="ID"><input id="tName" placeholder="Name"><input id="tSub" placeholder="Subject"><input type="password" id="tPass" placeholder="Password"><button class="action" onclick="addTeacherUser()">তৈরি</button>`;
+      area.innerHTML = `<input id="tId" placeholder="Teacher ID"><input id="tName" placeholder="Name"><input id="tSub" placeholder="Subject"><input type="password" id="tPass" placeholder="Password"><button class="action" onclick="addTeacherUser()">Create Teacher</button>`;
     }
   }
 
@@ -333,7 +390,7 @@
       password: document.getElementById('sPass').value,
       activeStatus: true
     });
-    alert('Created'); listUsers();
+    alert('Student created'); listUsers();
   }
 
   async function addTeacherUser() {
@@ -342,7 +399,7 @@
       subject: document.getElementById('tSub').value,
       password: document.getElementById('tPass').value
     });
-    alert('Created'); listUsers();
+    alert('Teacher created'); listUsers();
   }
 
   // ==================== SETTINGS ====================
@@ -356,7 +413,7 @@
       <label>ঠিকানা: <input id="sAddr" value="${s.address||''}"></label><br>
       <label>ফেসবুক: <input id="sFB" value="${s.facebook||''}"></label><br>
       <label>ইউটিউব: <input id="sYT" value="${s.youtube||''}"></label><br>
-      <label>ম্যাপ: <input id="sMap" value="${s.map||''}"></label><br>
+      <label>ম্যাপ লিংক: <input id="sMap" value="${s.map||''}"></label><br>
       <button class="action" onclick="saveSiteSettings()">সংরক্ষণ</button>`;
   }
 
@@ -380,6 +437,5 @@
       <button class="action" onclick="alert('Coming soon')">📋 লগ</button>`;
   }
 </script>
-
 </body>
 </html>
