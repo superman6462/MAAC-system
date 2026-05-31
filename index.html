@@ -1,390 +1,1273 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Master Academic & Admission Care – Quality coaching in Kalitola, Bogura.">
-  <meta name="theme-color" content="#1A73E8">
-  <link rel="manifest" href="/manifest.json">
+  <meta name="description" content="MAAC – Master Academic & Admission Care | Premium coaching in Kalitola, Bogura.">
+  <meta name="theme-color" content="#0a1628">
   <title>MAAC | Master Academic & Admission Care</title>
-  <!-- Google Fonts -->
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
   <!-- Swiper -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-  <!-- AOS -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
   <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
     :root {
-      --primary: #1A73E8;
-      --secondary: #00BFA5;
-      --dark: #0f172a;
-      --light: #f8fafc;
-      --glass-bg: rgba(255,255,255,0.15);
-      --glass-border: rgba(255,255,255,0.25);
-      --shadow: 0 8px 32px rgba(0,0,0,0.1);
+      --navy:    #0a1628;
+      --navy2:   #112040;
+      --gold:    #c9a84c;
+      --gold2:   #e8c96a;
+      --teal:    #1ecbe1;
+      --white:   #ffffff;
+      --off:     #f7f5f0;
+      --text:    #1a2540;
+      --muted:   #6b7a99;
+      --border:  rgba(10,22,40,0.10);
+      --card-bg: #ffffff;
+      --bg:      #f7f5f0;
+      --header-bg: rgba(247,245,240,0.92);
+      --section-alt: #eef1f8;
+      --shadow:  0 4px 32px rgba(10,22,40,0.10);
+      --shadow-lg: 0 12px 48px rgba(10,22,40,0.16);
+      --radius:  16px;
+      --transition: 0.3s cubic-bezier(.4,0,.2,1);
     }
     [data-theme="dark"] {
-      --glass-bg: rgba(20,20,20,0.6);
-      --glass-border: rgba(255,255,255,0.1);
-      --shadow: 0 8px 32px rgba(255,255,255,0.05);
-      background: #0f172a;
-      color: #e2e8f0;
+      --navy:    #0a1628;
+      --navy2:   #112040;
+      --off:     #0d1a30;
+      --text:    #e8edf7;
+      --muted:   #8fa3c8;
+      --border:  rgba(255,255,255,0.08);
+      --card-bg: #152036;
+      --bg:      #0d1a30;
+      --header-bg: rgba(10,22,40,0.95);
+      --section-alt: #111e35;
+      --shadow:  0 4px 32px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ============================================================
+       BASE
+    ============================================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      color: #1e293b;
-      transition: background 0.3s, color 0.3s;
+      font-family: 'DM Sans', 'Noto Sans Bengali', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background var(--transition), color var(--transition);
+      overflow-x: hidden;
+      line-height: 1.6;
     }
-    [data-theme="dark"] body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Headings use DM Serif Display */
+    h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; line-height: 1.2; }
+
+    /* ============================================================
+       SCROLLBAR
+    ============================================================ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+    /* ============================================================
+       DECORATIVE ELEMENTS
+    ============================================================ */
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 12px;
     }
-    .container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
-    /* Glass card */
-    .glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
+    .section-label::before {
+      content: ''; width: 24px; height: 2px; background: var(--gold); border-radius: 2px;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 1rem; color: var(--muted); max-width: 560px;
+    }
+    .section-header { margin-bottom: 48px; }
+    .section-header.center { text-align: center; }
+    .section-header.center .section-label { justify-content: center; }
+    .section-header.center .section-sub { margin: 0 auto; }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 100px;
+      font-size: 0.9rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; border: none; transition: all var(--transition);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: var(--navy);
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(201,168,76,0.4); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-navy {
+      background: var(--navy);
+      color: var(--white);
+    }
+    .btn-navy:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(10,22,40,0.3); }
+    [data-theme="dark"] .btn-navy { background: var(--gold); color: var(--navy); }
+
+    /* ============================================================
+       CARD
+    ============================================================ */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
     }
-    /* Gradient button */
-    .btn-grad {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #fff;
-      padding: 12px 28px;
-      border-radius: 30px;
-      text-decoration: none;
-      font-weight: 600;
-      display: inline-block;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .btn-grad:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(26,115,232,0.3); }
-    /* Header */
+    .card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+
+    /* ============================================================
+       HEADER / NAVBAR
+    ============================================================ */
     header {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding: 10px 0;
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--header-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
     }
-    [data-theme="dark"] header { background: rgba(15,23,42,0.8); }
-    .navbar { display: flex; align-items: center; justify-content: space-between; }
-    .logo img { height: 50px; }
-    .nav-links { display: flex; gap: 24px; }
-    .nav-links a { text-decoration: none; color: inherit; font-weight: 500; transition: color 0.3s; }
-    .nav-links a:hover { color: var(--primary); }
-    .theme-toggle { cursor: pointer; font-size: 1.5rem; }
-    /* Hero */
+    .navbar {
+      height: 68px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'DM Serif Display', serif; font-size: 1.4rem;
+      color: var(--navy);
+    }
+    [data-theme="dark"] .logo { color: var(--white); }
+    .logo-mark {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--navy), var(--navy2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.1rem; font-weight: 700;
+    }
+    .logo-text span { color: var(--gold); }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 4px;
+      list-style: none;
+    }
+    .nav-links a {
+      padding: 8px 14px; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 500;
+      color: var(--muted);
+      transition: all var(--transition);
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text); background: var(--border);
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .theme-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--border); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: var(--text);
+      transition: all var(--transition);
+    }
+    .theme-btn:hover { background: var(--gold); color: var(--navy); }
+
+    /* Hamburger */
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px; cursor: pointer;
+      padding: 8px; border-radius: 8px; background: none; border: none;
+    }
+    .hamburger span {
+      width: 22px; height: 2px; background: var(--text);
+      border-radius: 2px; transition: all var(--transition);
+    }
+
+    /* Mobile nav */
+    .mobile-nav {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--bg);
+      flex-direction: column;
+      padding: 80px 24px 40px;
+      overflow-y: auto;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      padding: 16px 0; border-bottom: 1px solid var(--border);
+      font-size: 1.1rem; font-weight: 500;
+      color: var(--text);
+    }
+    .mobile-nav a:last-child { border-bottom: none; }
+    .close-btn {
+      position: absolute; top: 20px; right: 20px;
+      background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text);
+    }
+
+    /* ============================================================
+       HERO
+    ============================================================ */
     .hero {
-      display: flex; align-items: center; min-height: 80vh;
-      background: linear-gradient(135deg, rgba(26,115,232,0.1), rgba(0,191,165,0.1));
+      min-height: 90vh;
+      display: flex; align-items: center;
+      position: relative; overflow: hidden;
       padding: 60px 0;
+      background: var(--navy);
     }
-    .hero-content { flex: 1; }
-    .hero h1 { font-size: 3rem; font-weight: 700; line-height: 1.2; }
-    .hero h1 .gradient-text {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(201,168,76,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(30,203,225,0.10) 0%, transparent 40%);
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      color: var(--white);
+      line-height: 1.15; margin-bottom: 20px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .hero p { font-size: 1.2rem; margin: 20px 0; color: #475569; }
-    [data-theme="dark"] .hero p { color: #cbd5e1; }
-    .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
-    /* Stats */
-    .stats { display: flex; gap: 40px; margin: 60px 0; justify-content: center; flex-wrap: wrap; }
-    .stat-item { text-align: center; }
-    .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
-    /* Swiper */
-    .swiper { width: 100%; height: auto; padding: 20px 0; }
-    .swiper-slide { display: flex; justify-content: center; }
-    /* Footer */
-    footer { background: var(--dark); color: #fff; padding: 40px 0; margin-top: 80px; }
-    footer a { color: var(--secondary); text-decoration: none; }
-    .social-icons a { margin-right: 15px; font-size: 1.5rem; }
-    .whatsapp-float {
-      position: fixed; bottom: 30px; right: 30px;
-      background: #25D366; color: #fff; border-radius: 50%;
-      width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 999; transition: transform 0.3s;
+    .hero p {
+      font-size: 1rem; color: rgba(255,255,255,0.65);
+      max-width: 480px; margin-bottom: 32px; line-height: 1.8;
     }
-    .whatsapp-float:hover { transform: scale(1.1); }
-    /* Map iframe */
-    .map-container { border-radius: 16px; overflow: hidden; }
-    .map-container iframe { width: 100%; height: 300px; border: 0; }
-    /* Responsive */
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-visual {
+      display: flex; justify-content: center; align-items: center;
+    }
+    .hero-img-wrap {
+      position: relative; border-radius: 24px; overflow: hidden;
+      width: 100%; max-width: 460px;
+    }
+    .hero-img-wrap img { width: 100%; border-radius: 24px; }
+    .hero-badge {
+      position: absolute; bottom: 24px; left: 24px;
+      background: rgba(10,22,40,0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 14px; padding: 14px 18px;
+      color: var(--white);
+    }
+    .hero-badge .num { font-size: 1.8rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .hero-badge .lbl { font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: absolute; bottom: 30px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: rgba(255,255,255,0.4); font-size: 0.7rem; letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .scroll-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); animation: scrollBounce 1.5s infinite;
+    }
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateY(0); opacity:1; }
+      50% { transform: translateY(8px); opacity:0.4; }
+    }
+
+    /* ============================================================
+       STATS BAND
+    ============================================================ */
+    .stats-band {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-inner {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      divide-x: 1px solid var(--border);
+    }
+    .stat-item {
+      padding: 32px 24px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-number {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.4rem; color: var(--gold);
+      line-height: 1;
+    }
+    .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+
+    /* ============================================================
+       SECTIONS — General
+    ============================================================ */
+    .section { padding: 90px 0; }
+    .section.alt { background: var(--section-alt); }
+
+    /* ============================================================
+       COURSES
+    ============================================================ */
+    .courses-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .course-card { padding: 28px; cursor: pointer; }
+    .course-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 18px;
+    }
+    .course-card h3 { font-size: 1.2rem; margin-bottom: 10px; }
+    .course-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+    .course-tag {
+      display: inline-block; margin-top: 14px;
+      background: rgba(201,168,76,0.12); color: var(--gold);
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
+      padding: 4px 12px; border-radius: 100px;
+      text-transform: uppercase;
+    }
+
+    /* ============================================================
+       NOTICES
+    ============================================================ */
+    .notice-list { display: flex; flex-direction: column; gap: 14px; }
+    .notice-item {
+      padding: 20px 24px;
+      display: flex; align-items: flex-start; gap: 16px;
+    }
+    .notice-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gold); flex-shrink: 0; margin-top: 6px;
+    }
+    .notice-date { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+    /* ============================================================
+       TEACHERS
+    ============================================================ */
+    .teachers-swiper .swiper-slide { padding: 8px; }
+    .teacher-card { padding: 28px; text-align: center; }
+    .teacher-avatar {
+      width: 88px; height: 88px; border-radius: 50%;
+      object-fit: cover; margin: 0 auto 16px;
+      border: 3px solid var(--gold);
+    }
+    .teacher-card h3 { font-size: 1.1rem; margin-bottom: 4px; }
+    .teacher-card p { font-size: 0.85rem; color: var(--muted); }
+
+    /* ============================================================
+       GALLERY
+    ============================================================ */
+    .gallery-swiper .swiper-slide img {
+      border-radius: var(--radius); width: 100%; height: 240px;
+      object-fit: cover;
+    }
+
+    /* ============================================================
+       VIDEOS
+    ============================================================ */
+    .videos-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .video-wrap {
+      border-radius: var(--radius); overflow: hidden;
+      aspect-ratio: 16/9;
+      box-shadow: var(--shadow);
+    }
+    .video-wrap iframe { width: 100%; height: 100%; border: 0; }
+
+    /* ============================================================
+       TOP STUDENTS / LEADERBOARD
+    ============================================================ */
+    .leaderboard-table { width: 100%; border-collapse: collapse; }
+    .leaderboard-table th, .leaderboard-table td {
+      padding: 14px 16px; text-align: left; font-size: 0.88rem;
+    }
+    .leaderboard-table th {
+      background: rgba(201,168,76,0.08);
+      color: var(--gold); font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.72rem;
+    }
+    .leaderboard-table tr { border-bottom: 1px solid var(--border); }
+    .leaderboard-table tr:last-child { border-bottom: none; }
+    .rank-badge {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem;
+    }
+    .rank-1 { background: #FFD700; color: var(--navy); }
+    .rank-2 { background: #C0C0C0; color: var(--navy); }
+    .rank-3 { background: #CD7F32; color: #fff; }
+    .rank-n { background: var(--border); color: var(--muted); }
+
+    /* ============================================================
+       ADMISSION CTA
+    ============================================================ */
+    .cta-section {
+      background: var(--navy);
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 50%, rgba(201,168,76,0.15) 0%, transparent 60%);
+    }
+    .cta-inner {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 40px;
+    }
+    .cta-section h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); color: var(--white); }
+    .cta-section p { color: rgba(255,255,255,0.6); margin-top: 8px; }
+
+    /* ============================================================
+       CONTACT / MAP
+    ============================================================ */
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1.5fr;
+      gap: 36px; align-items: start;
+    }
+    .contact-info { padding: 36px; }
+    .contact-detail {
+      display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px;
+    }
+    .contact-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: rgba(201,168,76,0.12);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1rem; flex-shrink: 0;
+    }
+    .map-wrap { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+    .map-wrap iframe { width: 100%; height: 380px; border: 0; display: block; }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.7);
+      padding: 60px 0 28px;
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px; margin-bottom: 48px;
+    }
+    .footer-brand .logo { margin-bottom: 16px; color: var(--white); }
+    .footer-brand p { font-size: 0.85rem; line-height: 1.8; }
+    footer h4 {
+      font-family: 'DM Serif Display', serif;
+      color: var(--white); margin-bottom: 16px; font-size: 1rem;
+    }
+    footer a { font-size: 0.85rem; color: rgba(255,255,255,0.55); display: block; margin-bottom: 10px; transition: color var(--transition); }
+    footer a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-bottom p { font-size: 0.8rem; }
+    .social-row { display: flex; gap: 12px; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.6); font-size: 0.85rem;
+      transition: all var(--transition);
+    }
+    .social-btn:hover { background: var(--gold); color: var(--navy); }
+
+    /* ============================================================
+       WHATSAPP FLOAT
+    ============================================================ */
+    .whatsapp-float {
+      position: fixed; bottom: 28px; right: 28px; z-index: 999;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #25D366;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: #fff;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(37,211,102,0.6); }
+
+    /* ============================================================
+       SWIPER CUSTOM
+    ============================================================ */
+    .swiper-pagination-bullet { background: var(--muted); opacity: 0.5; }
+    .swiper-pagination-bullet-active { background: var(--gold); opacity: 1; }
+    .swiper-button-next::after, .swiper-button-prev::after { font-size: 1rem !important; }
+    .swiper-button-next, .swiper-button-prev {
+      width: 40px !important; height: 40px !important;
+      background: var(--card-bg); border-radius: 50%;
+      box-shadow: var(--shadow);
+      color: var(--navy) !important;
+    }
+    [data-theme="dark"] .swiper-button-next,
+    [data-theme="dark"] .swiper-button-prev { color: var(--white) !important; }
+
+    /* ============================================================
+       PAGE-SECTION TABS (notices, courses etc.)
+    ============================================================ */
+    .tab-bar {
+      display: flex; gap: 4px; background: var(--section-alt);
+      border-radius: 12px; padding: 4px; margin-bottom: 32px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px 16px; border-radius: 9px; border: none;
+      background: none; cursor: pointer; font-size: 0.85rem; font-weight: 500;
+      color: var(--muted); transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .tab-btn.active {
+      background: var(--card-bg); color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ============================================================
+       ANNOUNCEMENT TICKER
+    ============================================================ */
+    .ticker-bar {
+      background: var(--navy); color: rgba(255,255,255,0.8);
+      padding: 10px 0; overflow: hidden;
+      font-size: 0.82rem;
+    }
+    .ticker-inner { display: flex; gap: 60px; animation: ticker 30s linear infinite; white-space: nowrap; }
+    .ticker-inner:hover { animation-play-state: paused; }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .ticker-item { display: flex; align-items: center; gap: 8px; }
+    .ticker-dot { color: var(--gold); }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1024px) {
+      .courses-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 768px) {
-      .hero { flex-direction: column; text-align: center; }
-      .hero h1 { font-size: 2.2rem; }
-      .nav-links { display: none; }
+      .nav-links, .nav-actions .btn { display: none; }
+      .hamburger { display: flex; }
+      .hero-grid { grid-template-columns: 1fr; text-align: center; }
+      .hero-visual { display: none; }
+      .hero p { margin: 0 auto 32px; }
+      .hero-buttons { justify-content: center; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      .stat-item:nth-child(3) { border-right: 1px solid var(--border); }
+      .stat-item:nth-child(3), .stat-item:nth-child(4) { border-top: 1px solid var(--border); }
+      .courses-grid { grid-template-columns: 1fr; }
+      .videos-grid { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .cta-inner { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .section { padding: 60px 0; }
+    }
+    @media (max-width: 480px) {
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container navbar">
-      <div class="logo">
-        <a href="/"><img src="/assets/images/logo.png" alt="MAAC Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%231A73E8%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22 font-weight=%22bold%22%3EMAAC%3C/text%3E%3C/svg%3E'"></a>
-      </div>
-      <nav class="nav-links">
-        <a href="#home">হোম / Home</a>
-        <a href="#courses">কোর্স / Courses</a>
-        <a href="#teachers">শিক্ষক / Teachers</a>
-        <a href="#gallery">গ্যালারি / Gallery</a>
-        <a href="#notice">নোটিশ / Notice</a>
-        <a href="#admission">ভর্তি / Admission</a>
-        <a href="#contact">যোগাযোগ / Contact</a>
-      </nav>
-      <div class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></div>
-    </div>
-  </header>
 
-  <!-- Hero -->
-  <section id="home" class="hero">
-    <div class="container" style="display:flex; flex-wrap:wrap; align-items:center;">
-      <div class="hero-content" data-aos="fade-right">
-        <h1 id="heroHeading">উন্নত শিক্ষার ঠিকানা<br><span class="gradient-text">Master Academic & Admission Care</span></h1>
-        <p id="heroSubheading">ক্লাসরুম কোচিং, সাপ্তাহিক পরীক্ষা, অনলাইন সাপোর্ট এবং অভিজ্ঞ শিক্ষকমণ্ডলী – সবই এখন Kalitola, Bogura-তে।</p>
+<!-- ============================================================ TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner" id="tickerContent">
+    <span class="ticker-item"><span class="ticker-dot">★</span> ভর্তি চলছে — Admission Open 2025-26</span>
+    <span class="ticker-item"><span class="ticker-dot">★</span> সাপ্তাহিক পরীক্ষা প্রতি শুক্রবার — Weekly Test Every Friday</span>
+    <span class="ticker-item"><span class="ticker-dot">★</span> নতুন ব্যাচ শুরু হবে — New Batch Starting Soon</span>
+    <span class="ticker-item"><span class="ticker-dot">★</span> ভর্তি চলছে — Admission Open 2025-26</span>
+    <span class="ticker-item"><span class="ticker-dot">★</span> সাপ্তাহিক পরীক্ষা প্রতি শুক্রবার — Weekly Test Every Friday</span>
+    <span class="ticker-item"><span class="ticker-dot">★</span> নতুন ব্যাচ শুরু হবে — New Batch Starting Soon</span>
+  </div>
+</div>
+
+<!-- ============================================================ HEADER -->
+<header>
+  <div class="container navbar">
+    <a href="#home" class="logo">
+      <div class="logo-mark">M</div>
+      <span class="logo-text">MA<span>AC</span></span>
+    </a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#courses">Courses</a></li>
+        <li><a href="#notice">Notices</a></li>
+        <li><a href="#teachers">Teachers</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#leaderboard">Leaderboard</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-actions">
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <a href="/student-login.html" class="btn btn-primary" style="display:none;" id="loginBtnDesktop">Student Login</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+  <button class="close-btn" id="closeNav"><i class="fas fa-times"></i></button>
+  <a href="#home" onclick="closeMobileNav()">🏠 Home</a>
+  <a href="#courses" onclick="closeMobileNav()">📚 Courses</a>
+  <a href="#notice" onclick="closeMobileNav()">📢 Notices</a>
+  <a href="#teachers" onclick="closeMobileNav()">👨‍🏫 Teachers</a>
+  <a href="#gallery" onclick="closeMobileNav()">🖼️ Gallery</a>
+  <a href="#leaderboard" onclick="closeMobileNav()">🏆 Leaderboard</a>
+  <a href="#admission" onclick="closeMobileNav()">✍️ Admission</a>
+  <a href="#contact" onclick="closeMobileNav()">📍 Contact</a>
+  <a href="/student-login.html" style="color:var(--gold); margin-top:16px; border-bottom:none;">→ Student Login</a>
+</div>
+
+<!-- ============================================================ HERO -->
+<section id="home" class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <i class="fas fa-star" style="font-size:0.7rem;"></i>
+          Kalitola, Bogura — Est. 2018
+        </div>
+        <h1 id="heroHeading">উন্নত শিক্ষার ঠিকানা<br><em>Master Academic<br>& Admission Care</em></h1>
+        <p id="heroSubheading">ক্লাসরুম কোচিং, সাপ্তাহিক পরীক্ষা, অনলাইন সাপোর্ট এবং অভিজ্ঞ শিক্ষকমণ্ডলী — সবই এখন Kalitola, Bogura-তে।</p>
         <div class="hero-buttons">
-          <a href="#admission" class="btn-grad">ভর্তি হোন / Enroll Now</a>
-          <a href="/student-login.html" class="btn-grad" style="background: linear-gradient(135deg, #00BFA5, #1A73E8);">আমাদের অ্যাপ / Our App</a>
+          <a href="#admission" class="btn btn-primary">
+            <i class="fas fa-pen-to-square"></i> ভর্তি হোন / Enroll
+          </a>
+          <a href="/student-login.html" class="btn btn-outline" style="color:rgba(255,255,255,0.8); border-color:rgba(255,255,255,0.2);">
+            Student Portal <i class="fas fa-arrow-right"></i>
+          </a>
         </div>
       </div>
-      <div data-aos="fade-left" style="flex:1; text-align:center;">
-        <img src="https://placehold.co/500x400/1A73E8/white?text=MAAC+Students" alt="Students" style="max-width:100%; border-radius:20px;">
+      <div class="hero-visual">
+        <div class="hero-img-wrap">
+          <img src="https://placehold.co/460x360/112040/c9a84c?text=MAAC+Students" alt="MAAC Students" loading="lazy">
+          <div class="hero-badge">
+            <div class="num" id="heroStudentBadge">500+</div>
+            <div class="lbl">Successful Students</div>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
-
-  <!-- Stats (dynamic) -->
-  <div class="container stats" data-aos="fade-up">
-    <div class="stat-item"><div class="stat-number" id="studentCount">0</div>শিক্ষার্থী / Students</div>
-    <div class="stat-item"><div class="stat-number" id="teacherCount">0</div>শিক্ষক / Teachers</div>
-    <div class="stat-item"><div class="stat-number" id="courseCount">0</div>কোর্স / Courses</div>
-    <div class="stat-item"><div class="stat-number" id="yearCount">0</div>সালের অভিজ্ঞতা / Years</div>
   </div>
+  <div class="scroll-indicator">
+    <div class="scroll-dot"></div>
+    <span>Scroll</span>
+  </div>
+</section>
 
-  <!-- Notices Swiper -->
-  <section id="notice" class="container" data-aos="fade-up">
-    <h2 style="text-align:center; margin-bottom:20px;">📢 নোটিশ বোর্ড / Notice Board</h2>
-    <div class="swiper mySwiper">
-      <div class="swiper-wrapper" id="noticeSwiper"></div>
+<!-- ============================================================ STATS BAND -->
+<div class="stats-band">
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <div class="stat-number" id="studentCount">500+</div>
+        <div class="stat-label">শিক্ষার্থী / Students</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="teacherCount">15+</div>
+        <div class="stat-label">শিক্ষক / Teachers</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="courseCount">8+</div>
+        <div class="stat-label">কোর্স / Courses</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="yearCount">6+</div>
+        <div class="stat-label">বছরের অভিজ্ঞতা / Years</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ COURSES -->
+<section id="courses" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Our Programs</div>
+      <h2 class="section-title">আমাদের কোর্সসমূহ</h2>
+      <p class="section-sub">Expert-led programs designed for board exams, admission tests, and skill development.</p>
+    </div>
+    <div class="courses-grid" id="coursesGrid">
+      <!-- Static fallback, replaced by Firebase if available -->
+      <div class="card course-card">
+        <div class="course-icon" style="background:rgba(201,168,76,0.12); color:var(--gold);">📚</div>
+        <h3>SSC পরীক্ষা প্রস্তুতি</h3>
+        <p>বোর্ড পরীক্ষার জন্য সম্পূর্ণ প্রস্তুতি। সাপ্তাহিক মডেল টেস্ট ও বিশেষ নোট সহ।</p>
+        <span class="course-tag">Board Exam</span>
+      </div>
+      <div class="card course-card">
+        <div class="course-icon" style="background:rgba(30,203,225,0.12); color:var(--teal);">🎓</div>
+        <h3>HSC পরীক্ষা প্রস্তুতি</h3>
+        <p>একাদশ ও দ্বাদশ শ্রেণীর সকল বিষয়ের গভীর প্রস্তুতি ও অ্যাডমিশন গাইড।</p>
+        <span class="course-tag">Board Exam</span>
+      </div>
+      <div class="card course-card">
+        <div class="course-icon" style="background:rgba(99,102,241,0.12); color:#6366F1;">🏛️</div>
+        <h3>University Admission</h3>
+        <p>বিশ্ববিদ্যালয় ভর্তি পরীক্ষার জন্য বিশেষ কোর্স। ঢাকা, রাজশাহী ও BUET-কেন্দ্রিক।</p>
+        <span class="course-tag">Admission</span>
+      </div>
+      <div class="card course-card">
+        <div class="course-icon" style="background:rgba(239,68,68,0.12); color:#EF4444;">🔬</div>
+        <h3>বিজ্ঞান বিভাগ</h3>
+        <p>পদার্থ, রসায়ন ও গণিত — বিজ্ঞান বিভাগের সকল বিষয়ের বিশেষ ক্লাস।</p>
+        <span class="course-tag">Science</span>
+      </div>
+      <div class="card course-card">
+        <div class="course-icon" style="background:rgba(34,197,94,0.12); color:#22C55E;">💼</div>
+        <h3>বাণিজ্য বিভাগ</h3>
+        <p>অ্যাকাউন্টিং, ফিন্যান্স ও ব্যবসায় শিক্ষার বিশেষ কোর্স।</p>
+        <span class="course-tag">Commerce</span>
+      </div>
+      <div class="card course-card">
+        <div class="course-icon" style="background:rgba(249,115,22,0.12); color:#F97316;">✍️</div>
+        <h3>বাংলা ও ইংরেজি</h3>
+        <p>ভাষা দক্ষতা বৃদ্ধি, রচনা লেখা, ব্যাকরণ ও কমিউনিকেশন স্কিল।</p>
+        <span class="course-tag">Language</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ NOTICE BOARD -->
+<section id="notice" class="section alt">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-label">Announcements</div>
+      <h2 class="section-title">নোটিশ বোর্ড</h2>
+      <p class="section-sub">সর্বশেষ বিজ্ঞপ্তি ও ঘোষণাসমূহ</p>
+    </div>
+    <div class="notice-list" id="noticeList">
+      <div class="card notice-item">
+        <div class="notice-dot"></div>
+        <div>
+          <strong>নতুন ব্যাচ শুরু — June 2025</strong>
+          <p style="font-size:0.88rem; color:var(--muted); margin-top:4px;">SSC ও HSC-র নতুন ব্যাচ ১ জুন থেকে শুরু হবে। সকাল ও বিকেল দুটি শিফট পাওয়া যাচ্ছে।</p>
+          <div class="notice-date">May 28, 2025</div>
+        </div>
+      </div>
+      <div class="card notice-item">
+        <div class="notice-dot"></div>
+        <div>
+          <strong>সাপ্তাহিক মডেল টেস্ট — Friday Schedule</strong>
+          <p style="font-size:0.88rem; color:var(--muted); margin-top:4px;">প্রতি শুক্রবার সকাল ৯টায় মডেল টেস্ট অনুষ্ঠিত হবে।</p>
+          <div class="notice-date">May 25, 2025</div>
+        </div>
+      </div>
+      <div class="card notice-item">
+        <div class="notice-dot"></div>
+        <div>
+          <strong>অনলাইন সাপোর্ট সেশন — Live Class</strong>
+          <p style="font-size:0.88rem; color:var(--muted); margin-top:4px;">অনলাইন লাইভ ক্লাস এখন থেকে প্রতি বুধবার সন্ধ্যা ৭টায়।</p>
+          <div class="notice-date">May 20, 2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ TEACHERS -->
+<section id="teachers" class="section">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-label">Our Faculty</div>
+      <h2 class="section-title">আমাদের শিক্ষকমণ্ডলী</h2>
+      <p class="section-sub">অভিজ্ঞ ও দেদীপ্যমান শিক্ষকদের সাথে শিখুন</p>
+    </div>
+    <div class="swiper teachers-swiper">
+      <div class="swiper-wrapper" id="teacherSwiper">
+        <!-- Fallback teachers -->
+        <div class="swiper-slide">
+          <div class="card teacher-card">
+            <img class="teacher-avatar" src="https://placehold.co/88x88/0a1628/c9a84c?text=T" alt="Teacher">
+            <h3>লোড হচ্ছে...</h3>
+            <p>বিষয় আসছে</p>
+          </div>
+        </div>
+      </div>
       <div class="swiper-pagination"></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Top Students & Weekly Toppers (static placeholder) -->
-  <section class="container" style="margin-top:60px;" data-aos="fade-up">
-    <h2 style="text-align:center;">🏆 টপ স্টুডেন্টস ও সাপ্তাহিক টপার</h2>
-    <div class="glass" style="padding:24px; margin:20px 0;" id="topStudentsContainer">
-      <p>সাম্প্রতিক তথ্য লোড হচ্ছে...</p>
+<!-- ============================================================ GALLERY -->
+<section id="gallery" class="section alt">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-label">Gallery</div>
+      <h2 class="section-title">আমাদের গ্যালারি</h2>
+      <p class="section-sub">আমাদের ক্লাসরুম, ইভেন্ট ও পুরস্কার বিতরণের মুহূর্তসমূহ</p>
     </div>
-  </section>
-
-  <!-- Teacher Highlights -->
-  <section id="teachers" class="container" style="margin-top:60px;" data-aos="fade-up">
-    <h2 style="text-align:center;">👨‍🏫 আমাদের শিক্ষকমণ্ডলী</h2>
-    <div class="swiper teacherSwiper" style="margin-top:24px;">
-      <div class="swiper-wrapper" id="teacherSwiper"></div>
+    <div class="swiper gallery-swiper">
+      <div class="swiper-wrapper" id="gallerySwiper">
+        <div class="swiper-slide"><img src="https://placehold.co/600x240/112040/c9a84c?text=Gallery+Image" alt="Gallery"></div>
+      </div>
+      <div class="swiper-pagination"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Gallery -->
-  <section id="gallery" class="container" style="margin-top:60px;" data-aos="fade-up">
-    <h2 style="text-align:center;">🖼️ গ্যালারি</h2>
-    <div class="swiper gallerySwiper" style="margin-top:24px;">
-      <div class="swiper-wrapper" id="gallerySwiper"></div>
+<!-- ============================================================ VIDEOS -->
+<section id="videos" class="section">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-label">Video Gallery</div>
+      <h2 class="section-title">ভিডিও গ্যালারি</h2>
+      <p class="section-sub">আমাদের শ্রেণীকক্ষ ও বিশেষ অনুষ্ঠানের ভিডিও</p>
     </div>
-  </section>
-
-  <!-- Video Section -->
-  <section class="container" style="margin-top:60px;" data-aos="fade-up">
-    <h2 style="text-align:center;">🎥 ভিডিও গ্যালারি</h2>
-    <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:24px;" id="videoContainer">
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video" frameborder="0" allowfullscreen style="border-radius:16px; max-width:100%;"></iframe>
+    <div class="videos-grid" id="videoContainer">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="MAAC Video" allowfullscreen loading="lazy"></iframe>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Admission CTA -->
-  <section id="admission" class="container glass" style="padding:40px; margin-top:60px; text-align:center;" data-aos="zoom-in">
-    <h2>ভর্তি চলছে / Admissions Open</h2>
-    <p>এখনই যোগাযোগ করুন অথবা আমাদের অ্যাপ ব্যবহার করে অনলাইনে ভর্তি হোন।</p>
-    <a href="https://wa.me/8801713289750?text=Hello%2C%20I%20want%20to%20know%20about%20admission" target="_blank" class="btn-grad" style="background:#25D366;">WhatsApp এ যোগাযোগ</a>
-  </section>
-
-  <!-- Map -->
-  <section id="contact" class="container" style="margin-top:60px;" data-aos="fade-up">
-    <h2 style="text-align:center;">📍 আমাদের অবস্থান</h2>
-    <div class="map-container glass" style="margin-top:20px;">
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3631.9885541078726!2d89.3485378!3d24.8511732!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fc54e5b9c48e7b%3A0x9a7b0c0b9a6d7c6b!2sKalitola%2C%20Bogura!5e0!3m2!1sen!2sbd!4v1680000000000" allowfullscreen loading="lazy"></iframe>
+<!-- ============================================================ LEADERBOARD -->
+<section id="leaderboard" class="section alt">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-label">Top Performers</div>
+      <h2 class="section-title">🏆 সাপ্তাহিক লিডারবোর্ড</h2>
+      <p class="section-sub">এই সপ্তাহের সেরা শিক্ষার্থীরা</p>
     </div>
-  </section>
+    <div class="card" style="overflow:hidden;">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>নাম / Name</th>
+            <th>ক্লাস / Class</th>
+            <th>স্কোর / Score</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <tr>
+            <td><div class="rank-badge rank-1">1</div></td>
+            <td>লোড হচ্ছে...</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
-  <footer>
-    <div class="container" style="display:flex; flex-wrap:wrap; justify-content:space-between;">
+<!-- ============================================================ ADMISSION CTA -->
+<section id="admission" class="cta-section section">
+  <div class="container">
+    <div class="cta-inner">
       <div>
-        <h3>MAAC</h3>
-        <p>Kalitola, Bogura, Bangladesh</p>
-        <p>📞 +8801713289750</p>
-        <p>✉️ habiblinkage@gmail.com</p>
+        <div class="section-label" style="color:var(--gold2);">Join Us</div>
+        <h2>ভর্তি চলছে — <em style="font-style:italic; color:var(--gold);">Admissions Open</em></h2>
+        <p>এখনই যোগাযোগ করুন অথবা আমাদের স্টুডেন্ট পোর্টালে গিয়ে অনলাইনে ভর্তি হোন।</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px; flex-shrink:0;">
+        <a href="https://wa.me/8801713289750?text=Hello%2C%20I%20want%20to%20enroll" target="_blank" class="btn" style="background:#25D366; color:#fff;">
+          <i class="fab fa-whatsapp"></i> WhatsApp-এ যোগাযোগ
+        </a>
+        <a href="/student-login.html" class="btn" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2);">
+          <i class="fas fa-user"></i> Student Portal
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CONTACT + MAP -->
+<section id="contact" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Find Us</div>
+      <h2 class="section-title">যোগাযোগ করুন</h2>
+      <p class="section-sub">আমরা সর্বদা আপনাদের পাশে আছি।</p>
+    </div>
+    <div class="contact-grid">
+      <div class="card contact-info">
+        <div class="contact-detail">
+          <div class="contact-icon"><i class="fas fa-location-dot"></i></div>
+          <div>
+            <strong>ঠিকানা / Address</strong>
+            <p style="color:var(--muted); font-size:0.88rem; margin-top:4px;">Kalitola, Bogura, Bangladesh</p>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon"><i class="fas fa-phone"></i></div>
+          <div>
+            <strong>ফোন / Phone</strong>
+            <p style="color:var(--muted); font-size:0.88rem; margin-top:4px;"><a href="tel:+8801713289750" style="color:var(--gold);">+880 1713 289750</a></p>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <strong>ইমেইল / Email</strong>
+            <p style="color:var(--muted); font-size:0.88rem; margin-top:4px;"><a href="mailto:habiblinkage@gmail.com" style="color:var(--gold);">habiblinkage@gmail.com</a></p>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon"><i class="fas fa-clock"></i></div>
+          <div>
+            <strong>সময় / Hours</strong>
+            <p style="color:var(--muted); font-size:0.88rem; margin-top:4px;">শনি–বৃহস্পতি: সকাল ৮টা – রাত ৯টা</p>
+          </div>
+        </div>
+        <div class="social-row" style="margin-top:8px;">
+          <a class="social-btn" href="https://www.facebook.com/share/197FK1e5Zr/" target="_blank" style="background:rgba(24,119,242,0.15); color:#1877F2;"><i class="fab fa-facebook-f"></i></a>
+          <a class="social-btn" href="https://wa.me/8801713289750" target="_blank" style="background:rgba(37,211,102,0.15); color:#25D366;"><i class="fab fa-whatsapp"></i></a>
+          <a class="social-btn" href="#" style="background:rgba(255,0,0,0.12); color:#FF0000;"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="map-wrap card">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3631.9885541078726!2d89.3485378!3d24.8511732!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fc54e5b9c48e7b%3A0x9a7b0c0b9a6d7c6b!2sKalitola%2C%20Bogura!5e0!3m2!1sen!2sbd!4v1680000000000"
+          allowfullscreen loading="lazy" title="MAAC Location"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:16px;">
+          <div class="logo-mark">M</div>
+          <span>MAAC</span>
+        </div>
+        <p>Master Academic & Admission Care — Kalitola, Bogura-র প্রিমিয়াম কোচিং সেন্টার।</p>
+        <div class="social-row" style="margin-top:20px;">
+          <a class="social-btn" href="https://www.facebook.com/share/197FK1e5Zr/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a class="social-btn" href="https://wa.me/8801713289750" target="_blank"><i class="fab fa-whatsapp"></i></a>
+          <a class="social-btn" href="#"><i class="fab fa-youtube"></i></a>
+        </div>
       </div>
       <div>
-        <h4>গুরুত্বপূর্ণ লিংক</h4>
-        <a href="#">Privacy Policy</a><br>
-        <a href="#">Terms of Service</a><br>
+        <h4>Quick Links</h4>
+        <a href="#home">Home</a>
+        <a href="#courses">Courses</a>
+        <a href="#teachers">Teachers</a>
+        <a href="#gallery">Gallery</a>
+      </div>
+      <div>
+        <h4>Student</h4>
         <a href="/student-login.html">Student Login</a>
+        <a href="#notice">Notice Board</a>
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#admission">Admission</a>
       </div>
-      <div class="social-icons">
-        <a href="https://www.facebook.com/share/197FK1e5Zr/" target="_blank"><i class="fab fa-facebook"></i></a>
-        <a href="https://wa.me/8801713289750"><i class="fab fa-whatsapp"></i></a>
-        <a href="#"><i class="fab fa-youtube"></i></a>
+      <div>
+        <h4>Info</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="https://wa.me/8801713289750" target="_blank">WhatsApp</a>
       </div>
     </div>
-  </footer>
+    <div class="footer-bottom">
+      <p>© 2025 MAAC — Master Academic & Admission Care. All rights reserved.</p>
+      <p style="color:rgba(255,255,255,0.35);">Kalitola, Bogura, Bangladesh</p>
+    </div>
+  </div>
+</footer>
 
-  <!-- WhatsApp Float -->
-  <a href="https://wa.me/8801713289750" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+<!-- WhatsApp Float -->
+<a href="https://wa.me/8801713289750" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+</a>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<!-- ============================================================ SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-  <!-- Firebase (dynamic data) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script>
-    // ========== FIREBASE INIT ==========
-    firebase.initializeApp({
-      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
-      authDomain: "maac-system.firebaseapp.com",
-      projectId: "maac-system",
-      storageBucket: "maac-system.firebasestorage.app",
-      messagingSenderId: "888172288312",
-      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
-    });
-    const db = firebase.firestore();
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-    // ========== LOAD ALL DYNAMIC CONTENT ==========
-    async function loadDynamicContent() {
-      try {
-        // Hero
-        const heroDoc = await db.collection('settings').doc('hero').get();
-        if (heroDoc.exists) {
-          const hero = heroDoc.data();
-          if (hero.heading) document.getElementById('heroHeading').innerHTML = hero.heading;
-          if (hero.subheading) document.getElementById('heroSubheading').textContent = hero.subheading;
-        }
+<script>
+// ============================================================
+// FIREBASE INIT
+// ============================================================
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+    authDomain: "maac-system.firebaseapp.com",
+    projectId: "maac-system",
+    storageBucket: "maac-system.firebasestorage.app",
+    messagingSenderId: "888172288312",
+    appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
+  });
+} catch(e) {}
+const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
 
-        // Stats
-        const statsDoc = await db.collection('settings').doc('stats').get();
-        if (statsDoc.exists) {
-          const stats = statsDoc.data();
-          document.getElementById('studentCount').textContent = stats.students || 0;
-          document.getElementById('teacherCount').textContent = stats.teachers || 0;
-          document.getElementById('courseCount').textContent = stats.courses || 0;
-          document.getElementById('yearCount').textContent = stats.years || 0;
-        }
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon   = document.getElementById('themeIcon');
+const html        = document.documentElement;
 
-        // Notices
-        const noticeSnap = await db.collection('notifications').where('type', '==', 'notice').orderBy('timestamp', 'desc').limit(10).get();
-        const noticeWrapper = document.getElementById('noticeSwiper');
-        noticeWrapper.innerHTML = '';
-        if (!noticeSnap.empty) {
-          noticeSnap.forEach(doc => {
-            const n = doc.data();
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            slide.innerHTML = `<div class="glass" style="padding:20px; text-align:center;"><h4>${n.title}</h4><p>${n.body || ''}</p></div>`;
-            noticeWrapper.appendChild(slide);
-          });
-        } else {
-          noticeWrapper.innerHTML = '<div class="swiper-slide"><div class="glass" style="padding:20px;">কোনো নোটিশ নেই</div></div>';
-        }
-        // Re-initialize Swiper after dynamic content
-        new Swiper(".mySwiper", { slidesPerView: 1, spaceBetween: 20, pagination: { el: ".swiper-pagination", clickable: true }, autoplay: { delay: 4000 } });
+const savedTheme = localStorage.getItem('maac-theme') || 'light';
+html.setAttribute('data-theme', savedTheme);
+themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 
-        // Teachers
-        const teacherSnap = await db.collection('teachers').get();
-        const teacherWrapper = document.getElementById('teacherSwiper');
-        teacherWrapper.innerHTML = '';
-        if (!teacherSnap.empty) {
-          teacherSnap.forEach(doc => {
-            const t = doc.data();
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            slide.innerHTML = `<div class="glass card" style="text-align:center;"><img src="${t.photo || 'https://placehold.co/100x100/1A73E8/white?text=Teacher'}" width="80" height="80" style="border-radius:50%;"><h4>${t.name}</h4><p>${t.subject}</p></div>`;
-            teacherWrapper.appendChild(slide);
-          });
-        } else {
-          teacherWrapper.innerHTML = '<div class="swiper-slide"><div class="glass">শীঘ্রই আসছে...</div></div>';
-        }
-        new Swiper(".teacherSwiper", { slidesPerView: 3, spaceBetween: 24, breakpoints: { 640: { slidesPerView: 1 }, 1024: { slidesPerView: 3 } } });
+themeToggle.addEventListener('click', () => {
+  const cur = html.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  themeIcon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  localStorage.setItem('maac-theme', next);
+});
 
-        // Gallery
-        const gallerySnap = await db.collection('galleries').get();
-        const galleryWrapper = document.getElementById('gallerySwiper');
-        galleryWrapper.innerHTML = '';
-        if (!gallerySnap.empty) {
-          gallerySnap.forEach(doc => {
-            const img = doc.data();
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            slide.innerHTML = `<img src="${img.url}" alt="${img.caption || ''}" style="border-radius:16px; max-width:100%;">`;
-            galleryWrapper.appendChild(slide);
-          });
-        } else {
-          galleryWrapper.innerHTML = '<div class="swiper-slide"><img src="https://placehold.co/600x400/1A73E8/white?text=No+Image" style="border-radius:16px;"></div>';
-        }
-        new Swiper(".gallerySwiper", { slidesPerView: 2, spaceBetween: 16 });
+// ============================================================
+// MOBILE NAV
+// ============================================================
+const hamburger  = document.getElementById('hamburger');
+const mobileNav  = document.getElementById('mobileNav');
+const closeNav   = document.getElementById('closeNav');
 
-        // Videos
-        const videoSnap = await db.collection('videos').get();
-        const videoContainer = document.getElementById('videoContainer');
-        videoContainer.innerHTML = '';
-        if (!videoSnap.empty) {
-          videoSnap.forEach(doc => {
-            const v = doc.data();
-            videoContainer.innerHTML += `<iframe width="560" height="315" src="${v.url}" title="${v.title}" frameborder="0" allowfullscreen style="border-radius:16px; max-width:100%; margin:10px;"></iframe>`;
-          });
-        } else {
-          videoContainer.innerHTML = '<p>কোনো ভিডিও নেই</p>';
-        }
+hamburger.addEventListener('click', () => mobileNav.classList.add('open'));
+closeNav.addEventListener('click',  () => mobileNav.classList.remove('open'));
+function closeMobileNav() { mobileNav.classList.remove('open'); }
 
-      } catch (error) {
-        console.warn("Could not load dynamic content:", error);
-      }
+// Close on outside click
+mobileNav.addEventListener('click', e => {
+  if (e.target === mobileNav) mobileNav.classList.remove('open');
+});
+
+// ============================================================
+// ACTIVE NAV LINK ON SCROLL
+// ============================================================
+const sections = document.querySelectorAll('section[id]');
+const navLinks  = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    if (window.scrollY >= sec.offsetTop - 100) current = sec.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+
+// ============================================================
+// SHOW LOGIN BTN ON DESKTOP
+// ============================================================
+document.getElementById('loginBtnDesktop').style.display = 'inline-flex';
+
+// ============================================================
+// INIT SWIPERS
+// ============================================================
+function initSwipers() {
+  new Swiper('.teachers-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    pagination: { el: '.teachers-swiper .swiper-pagination', clickable: true },
+    autoplay: { delay: 3500 },
+    breakpoints: {
+      600:  { slidesPerView: 2 },
+      900:  { slidesPerView: 3 },
+      1100: { slidesPerView: 4 }
+    }
+  });
+  new Swiper('.gallery-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 16,
+    pagination: { el: '.gallery-swiper .swiper-pagination', clickable: true },
+    navigation: { nextEl: '.gallery-swiper .swiper-button-next', prevEl: '.gallery-swiper .swiper-button-prev' },
+    autoplay: { delay: 4000 },
+    breakpoints: { 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+  });
+}
+
+// ============================================================
+// LOAD DYNAMIC CONTENT FROM FIREBASE
+// ============================================================
+async function loadDynamicContent() {
+  if (!db) return;
+
+  try {
+    // Hero settings
+    const heroDoc = await db.collection('settings').doc('hero').get();
+    if (heroDoc.exists) {
+      const h = heroDoc.data();
+      if (h.heading)    document.getElementById('heroHeading').innerHTML    = h.heading;
+      if (h.subheading) document.getElementById('heroSubheading').textContent = h.subheading;
     }
 
-    // ========== INIT ANIMATIONS & THEME ==========
-    AOS.init({ duration: 1000, once: true });
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const html = document.documentElement;
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-      }
-    });
-
-    // Load everything when page is ready
-    window.addEventListener('DOMContentLoaded', loadDynamicContent);
-  </script>
-
-  <!-- Service Worker (PWA) -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
+    // Stats
+    const statsDoc = await db.collection('settings').doc('stats').get();
+    if (statsDoc.exists) {
+      const s = statsDoc.data();
+      if (s.students) { document.getElementById('studentCount').textContent = s.students + '+'; document.getElementById('heroStudentBadge').textContent = s.students + '+'; }
+      if (s.teachers) document.getElementById('teacherCount').textContent = s.teachers + '+';
+      if (s.courses)  document.getElementById('courseCount').textContent  = s.courses + '+';
+      if (s.years)    document.getElementById('yearCount').textContent    = s.years + '+';
     }
-  </script>
+
+    // Notices
+    const noticeSnap = await db.collection('notifications')
+      .where('type', '==', 'notice')
+      .orderBy('timestamp', 'desc')
+      .limit(6).get();
+
+    if (!noticeSnap.empty) {
+      const noticeList = document.getElementById('noticeList');
+      noticeList.innerHTML = '';
+      noticeSnap.forEach(doc => {
+        const n = doc.data();
+        const date = n.timestamp ? new Date(n.timestamp.seconds*1000).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : '';
+        noticeList.innerHTML += `
+          <div class="card notice-item">
+            <div class="notice-dot"></div>
+            <div>
+              <strong>${n.title || ''}</strong>
+              <p style="font-size:0.88rem; color:var(--muted); margin-top:4px;">${n.body || ''}</p>
+              ${date ? `<div class="notice-date">${date}</div>` : ''}
+            </div>
+          </div>`;
+      });
+    }
+
+    // Teachers
+    const teacherSnap = await db.collection('teachers').get();
+    if (!teacherSnap.empty) {
+      const tw = document.getElementById('teacherSwiper');
+      tw.innerHTML = '';
+      teacherSnap.forEach(doc => {
+        const t = doc.data();
+        tw.innerHTML += `
+          <div class="swiper-slide">
+            <div class="card teacher-card">
+              <img class="teacher-avatar" src="${t.photo || 'https://placehold.co/88x88/0a1628/c9a84c?text=' + encodeURIComponent(t.name?.[0]||'T')}" alt="${t.name}" loading="lazy">
+              <h3>${t.name || ''}</h3>
+              <p>${t.subject || ''}</p>
+            </div>
+          </div>`;
+      });
+    }
+
+    // Gallery
+    const gallerySnap = await db.collection('galleries').get();
+    if (!gallerySnap.empty) {
+      const gw = document.getElementById('gallerySwiper');
+      gw.innerHTML = '';
+      gallerySnap.forEach(doc => {
+        const g = doc.data();
+        gw.innerHTML += `<div class="swiper-slide"><img src="${g.url}" alt="${g.caption || 'Gallery'}" loading="lazy"></div>`;
+      });
+    }
+
+    // Videos
+    const videoSnap = await db.collection('videos').get();
+    if (!videoSnap.empty) {
+      const vc = document.getElementById('videoContainer');
+      vc.innerHTML = '';
+      videoSnap.forEach(doc => {
+        const v = doc.data();
+        vc.innerHTML += `
+          <div class="video-wrap">
+            <iframe src="${v.url}" title="${v.title || 'MAAC Video'}" allowfullscreen loading="lazy"></iframe>
+          </div>`;
+      });
+    }
+
+    // Leaderboard
+    const lbSnap = await db.collection('leaderboard').orderBy('score', 'desc').limit(10).get();
+    if (!lbSnap.empty) {
+      let rows = ''; let rank = 1;
+      lbSnap.forEach(doc => {
+        const s = doc.data();
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-n';
+        rows += `<tr>
+          <td><div class="rank-badge ${rankClass}">${rank}</div></td>
+          <td><strong>${s.name || doc.id}</strong></td>
+          <td>${s.class || '—'}</td>
+          <td><strong style="color:var(--gold)">${s.score || 0}</strong></td>
+        </tr>`;
+        rank++;
+      });
+      document.getElementById('leaderboardBody').innerHTML = rows;
+    }
+
+  } catch (err) {
+    console.warn('Firebase load error:', err.message);
+  }
+
+  // Init swipers after data loaded
+  initSwipers();
+}
+
+// ============================================================
+// RUN
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadDynamicContent();
+});
+
+// PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
 </body>
 </html>
