@@ -1,128 +1,525 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a1628">
   <title>MAAC | Student Login</title>
-  <link rel="manifest" href="/manifest.json">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy:       #0a1628;
+      --navy2:      #112040;
+      --gold:       #c9a84c;
+      --gold2:      #e8c96a;
+      --text:       #1a2540;
+      --muted:      #6b7a99;
+      --border:     rgba(10,22,40,0.12);
+      --card-bg:    #ffffff;
+      --bg:         #f7f5f0;
+      --success:    #22c55e;
+      --danger:     #ef4444;
+      --radius:     16px;
+      --transition: 0.3s cubic-bezier(.4,0,.2,1);
+      --shadow-lg:  0 20px 60px rgba(10,22,40,0.18);
+    }
+
+    [data-theme="dark"] {
+      --text:    #e8edf7;
+      --muted:   #8fa3c8;
+      --border:  rgba(255,255,255,0.08);
+      --card-bg: #152036;
+      --bg:      #0d1a30;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1A73E8, #00BFA5);
+      font-family: 'DM Sans', 'Noto Sans Bengali', sans-serif;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
     }
-    .login-box {
-      background: rgba(255,255,255,0.95);
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(201,168,76,0.18) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(30,203,225,0.10) 0%, transparent 40%),
+        radial-gradient(circle at 60% 80%, rgba(201,168,76,0.08) 0%, transparent 40%);
+    }
+
+    /* Floating dots */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(201,168,76,0.15);
+      animation: float 6s ease-in-out infinite;
+    }
+    .dot:nth-child(1) { width:80px; height:80px; top:10%; left:10%; animation-delay:0s; }
+    .dot:nth-child(2) { width:50px; height:50px; top:70%; left:80%; animation-delay:2s; }
+    .dot:nth-child(3) { width:30px; height:30px; top:40%; left:5%; animation-delay:4s; }
+    .dot:nth-child(4) { width:60px; height:60px; top:80%; left:20%; animation-delay:1s; }
+    .dot:nth-child(5) { width:20px; height:20px; top:20%; left:75%; animation-delay:3s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.4; }
+      50%       { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+    }
+
+    /* Login card */
+    .login-wrap {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 420px;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+    }
+
+    /* Logo */
+    .logo-area {
       text-align: center;
+      margin-bottom: 32px;
     }
-    .login-box h2 { margin-bottom: 10px; color: #1A73E8; }
-    .login-box p { color: #666; margin-bottom: 24px; font-size: 0.9rem; }
-    input {
+
+    .logo-mark {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, var(--navy), var(--navy2));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.5rem; font-weight: 700;
+      font-family: 'DM Serif Display', serif;
+      margin: 0 auto 14px;
+      border: 2px solid rgba(201,168,76,0.3);
+    }
+
+    .logo-area h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+
+    .logo-area p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
       display: block;
-      width: 100%;
-      padding: 14px;
-      margin: 12px 0;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 16px;
-      outline: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 8px;
     }
-    input:focus { border-color: #1A73E8; }
-    button {
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 13px 14px 13px 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border var(--transition), box-shadow var(--transition);
+    }
+
+    .form-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+    }
+
+    /* Toggle password visibility */
+    .toggle-pass {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; color: var(--muted);
+      font-size: 0.9rem; padding: 2px;
+      transition: color var(--transition);
+    }
+
+    .toggle-pass:hover { color: var(--gold); }
+
+    /* Submit button */
+    .btn-login {
       width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, #1A73E8, #00BFA5);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: var(--navy);
+      border: none; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
       cursor: pointer;
+      transition: all var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       margin-top: 8px;
     }
-    #msg { margin-top: 16px; font-size: 0.9rem; }
-    #msg.error { color: #e53935; }
-    #msg.success { color: #2e7d32; }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.7; cursor: not-allowed; transform: none;
+    }
+
+    /* Message */
+    .msg {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg.show { display: flex; }
+    .msg.error   { background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid rgba(239,68,68,0.25); }
+    .msg.success { background: rgba(34,197,94,0.12); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+
+    /* Footer links */
+    .card-footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .card-footer p {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .card-footer a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .card-footer a:hover { text-decoration: underline; }
+
+    /* Back to home */
+    .back-home {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .back-home:hover { color: var(--gold); }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: absolute;
+      top: 20px; right: 20px;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: none; cursor: pointer;
+      color: rgba(255,255,255,0.7);
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+      z-index: 20;
+    }
+
+    .theme-toggle:hover { background: var(--gold); color: var(--navy); }
+
+    /* Spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(10,22,40,0.3);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-login.loading .spinner { display: block; }
+    .btn-login.loading .btn-text { display: none; }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>📚 স্টুডেন্ট লগইন</h2>
-    <p>আপনার ID ও পাসওয়ার্ড দিন</p>
-    <input id="studentId" type="text" placeholder="Student ID">
-    <input id="studentPass" type="password" placeholder="Password">
-    <button onclick="handleLogin()">লগইন</button>
-    <div id="msg"></div>
+
+  <!-- Floating dots -->
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+
+  <!-- Theme toggle -->
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+    <i class="fas fa-moon" id="themeIcon"></i>
+  </button>
+
+  <div class="login-wrap">
+    <div class="login-card">
+
+      <!-- Logo -->
+      <div class="logo-area">
+        <div class="logo-mark">M</div>
+        <h1>Student Login</h1>
+        <p>MAAC — Master Academic & Admission Care</p>
+      </div>
+
+      <!-- Form -->
+      <div class="form-group">
+        <label class="form-label" for="studentId">
+          <i class="fas fa-id-card"></i> Student ID
+        </label>
+        <div class="input-wrap">
+          <i class="fas fa-user"></i>
+          <input
+            id="studentId"
+            type="text"
+            class="form-input"
+            placeholder="Enter your Student ID"
+            autocomplete="username"
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="studentPass">
+          <i class="fas fa-lock"></i> Password
+        </label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input
+            id="studentPass"
+            type="password"
+            class="form-input"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+          >
+          <button class="toggle-pass" id="togglePass" type="button" title="Toggle password">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Login button -->
+      <button class="btn-login" id="loginBtn" onclick="handleLogin()">
+        <div class="spinner" id="spinner"></div>
+        <span class="btn-text">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </span>
+      </button>
+
+      <!-- Message -->
+      <div class="msg" id="msgBox">
+        <i class="fas fa-circle-info" id="msgIcon"></i>
+        <span id="msgText"></span>
+      </div>
+
+      <!-- Footer -->
+      <div class="card-footer">
+        <p>Need help? Contact <a href="https://wa.me/8801713289750" target="_blank">Admin via WhatsApp</a></p>
+      </div>
+
+    </div>
+
+    <!-- Back to home — relative path for GitHub Pages -->
+    <a class="back-home" href="index.html">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
   </div>
 
-  <!-- Firebase -->
+  <!-- ============================================================ FIREBASE (CDN — works on GitHub Pages) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <script>
-    firebase.initializeApp({
-      apiKey: "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
-      authDomain: "maac-system.firebaseapp.com",
-      projectId: "maac-system",
-      storageBucket: "maac-system.firebasestorage.app",
+    // ============================================================
+    // FIREBASE INIT
+    // ============================================================
+    const firebaseConfig = {
+      apiKey:            "AIzaSyCwRPJ7Rh-0yA_ZNSfsMv2JIFqQVL_YDqI",
+      authDomain:        "maac-system.firebaseapp.com",
+      projectId:         "maac-system",
+      storageBucket:     "maac-system.firebasestorage.app",
       messagingSenderId: "888172288312",
-      appId: "1:888172288312:web:29e2e182e2dbd55df209cd"
-    });
+      appId:             "1:888172288312:web:29e2e182e2dbd55df209cd"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // ============================================================
+    // THEME
+    // ============================================================
+    const html      = document.documentElement;
+    const themeBtn  = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+
+    const saved = localStorage.getItem('maac-theme') || 'light';
+    html.setAttribute('data-theme', saved);
+    themeIcon.className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+    themeBtn.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      themeIcon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      localStorage.setItem('maac-theme', next);
+    });
+
+    // ============================================================
+    // PASSWORD TOGGLE
+    // ============================================================
+    document.getElementById('togglePass').addEventListener('click', () => {
+      const inp = document.getElementById('studentPass');
+      const ico = document.getElementById('eyeIcon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.className = 'fas fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        ico.className = 'fas fa-eye';
+      }
+    });
+
+    // ============================================================
+    // SHOW MESSAGE
+    // ============================================================
+    function showMsg(text, type) {
+      const box  = document.getElementById('msgBox');
+      const txt  = document.getElementById('msgText');
+      const icon = document.getElementById('msgIcon');
+      box.className  = `msg show ${type}`;
+      txt.textContent = text;
+      icon.className  = type === 'error'
+        ? 'fas fa-circle-xmark'
+        : 'fas fa-circle-check';
+    }
+
+    function clearMsg() {
+      document.getElementById('msgBox').className = 'msg';
+    }
+
+    // ============================================================
+    // LOGIN HANDLER
+    // ============================================================
     async function handleLogin() {
-      const id = document.getElementById('studentId').value.trim();
+      const id   = document.getElementById('studentId').value.trim();
       const pass = document.getElementById('studentPass').value;
-      const msg = document.getElementById('msg');
+      const btn  = document.getElementById('loginBtn');
+
+      clearMsg();
 
       if (!id || !pass) {
-        msg.textContent = 'ID ও পাসওয়ার্ড আবশ্যক';
-        msg.className = 'error';
+        showMsg('Please enter your Student ID and Password.', 'error');
         return;
       }
 
-      msg.textContent = 'চেক করা হচ্ছে...';
-      msg.className = '';
+      // Show loading state
+      btn.classList.add('loading');
+      btn.disabled = true;
 
       try {
         const doc = await db.collection('students').doc(id).get();
+
         if (!doc.exists) {
-          msg.textContent = '❌ ID পাওয়া যায়নি';
-          msg.className = 'error';
+          showMsg('❌ Student ID not found. Please check and try again.', 'error');
           return;
         }
+
         const data = doc.data();
-        if (data.password !== pass) {
-          msg.textContent = '❌ ভুল পাসওয়ার্ড';
-          msg.className = 'error';
+
+        if (!data.activeStatus) {
+          showMsg('⛔ Your account is inactive. Contact admin.', 'error');
           return;
         }
 
-        // Store login in session
-        sessionStorage.setItem('studentUser', JSON.stringify({
-          id: id,
-          name: data.name,
-          class: data.class
-        }));
+        if (data.password !== pass) {
+          showMsg('❌ Incorrect password. Please try again.', 'error');
+          return;
+        }
 
-        msg.textContent = '✅ সফল! রিডাইরেক্ট...';
-        msg.className = 'success';
+        // Save session — NO Firebase auth needed for students
+        const session = {
+          id:        id,
+          name:      data.name      || 'Student',
+          class:     data.class     || '',
+          phone:     data.phone     || '',
+          joinedAt:  data.createdAt || '',
+          loggedAt:  Date.now()
+        };
+        sessionStorage.setItem('maacStudent', JSON.stringify(session));
+
+        showMsg('✅ Login successful! Redirecting...', 'success');
+
+        // ✅ RELATIVE PATH — works on GitHub Pages
         setTimeout(() => {
-          window.location.href = '/student/portal.html';
-        }, 1000);
-      } catch (e) {
-        msg.textContent = '❌ ' + e.message;
-        msg.className = 'error';
+          window.location.href = 'student/portal.html';
+        }, 900);
+
+      } catch (err) {
+        showMsg('⚠️ Error: ' + err.message, 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
       }
+    }
+
+    // Allow Enter key to trigger login
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    // If already logged in, go directly to portal
+    if (sessionStorage.getItem('maacStudent')) {
+      window.location.href = 'student/portal.html';
     }
   </script>
 </body>
