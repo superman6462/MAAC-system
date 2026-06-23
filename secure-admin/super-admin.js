@@ -689,10 +689,12 @@ const TABS = {
         div.style.cssText = 'position:relative; border-radius:10px; overflow:hidden;';
         div.innerHTML = `
           <img src="${g.url}" style="width:100%; height:120px; object-fit:cover; display:block;" loading="lazy">
-          <button onclick="delDoc('galleries','${doc.id}',loadGalleryGrid)" style="position:absolute;top:6px;right:6px;background:rgba(239,68,68,0.9);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;color:#fff;font-size:0.75rem;"><i class="fas fa-trash"></i></button>`;
+          <button onclick="delDoc('galleries','${doc.id}',window.loadGalleryGrid)" style="position:absolute;top:6px;right:6px;background:rgba(239,68,68,0.9);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;color:#fff;font-size:0.75rem;"><i class="fas fa-trash"></i></button>`;
         el.appendChild(div);
       });
     }
+    // Expose to global scope so inline onclick handlers (which run in window context) can find it
+    window.loadGalleryGrid = loadGalleryGrid;
   },
 
   /* ---- VIDEOS ---- */
