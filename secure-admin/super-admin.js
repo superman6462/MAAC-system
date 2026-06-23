@@ -133,7 +133,7 @@ async function uploadToDrive(file) {
     body: JSON.stringify({ role: 'reader', type: 'anyone' })
   });
 
-  return `https://drive.google.com/uc?export=view&id=${data.id}`;
+  return `https://drive.google.com/thumbnail?id=${data.id}&sz=w1000`;
 }
 
 /* ============================================================
