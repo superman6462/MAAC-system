@@ -112,6 +112,22 @@ async function deleteFileFromDrive(fileId) {
 // Signal drive as ready on page load (no OAuth needed anymore)
 document.addEventListener('DOMContentLoaded', () => setDriveStatus('Drive Ready (GAS)', true));
 
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  const icons = { success: 'check-circle', error: 'circle-xmark', info: 'circle-info' };
+  t.innerHTML = `<i class="fas fa-${icons[type]||'info'}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+/* ============================================================
+   AUTH
+============================================================ */
 let panelShown = false;
 
 auth.onAuthStateChanged(user => {
