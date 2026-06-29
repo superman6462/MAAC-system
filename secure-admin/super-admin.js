@@ -412,6 +412,7 @@ const TABS = {
 
     // ── Tab switcher (file vs URL) ──
     window.switchHeroTab = (tab) => {
+      console.log('[Hero] Tab switch to:', tab);
       const fw = document.getElementById('hFileWrap');
       const uw = document.getElementById('hUrlWrap');
       const fb = document.getElementById('hTabFile');
@@ -467,30 +468,38 @@ const TABS = {
     renderHeroImgGrid(images);
 
     document.getElementById('addHeroImgBtn').addEventListener('click', async () => {
+      console.log('[Hero Image] Button clicked');
       const isUrlMode = document.getElementById('hUrlWrap').style.display !== 'none';
+      console.log('[Hero Image] URL mode:', isUrlMode);
       let url = '', fileId = '';
       if (isUrlMode) {
         url = document.getElementById('hUrl').value.trim();
+        console.log('[Hero Image] URL input value:', url);
         if (!url) { showToast('Enter an image URL', 'error'); return; }
       } else {
         const file = document.getElementById('hFile').files[0];
+        console.log('[Hero Image] File selected:', file ? file.name : 'none');
         if (!file) { showToast('Select an image file', 'error'); return; }
         showToast('Uploading to Drive…', 'info');
         try {
           const result = await uploadViaGAS(file, 'Hero');
+          console.log('[Hero Image] Upload result:', result);
           url = result.url; fileId = result.fileId;
-        } catch(e) { showToast('Upload error: ' + e.message, 'error'); return; }
+        } catch(e) { console.error('[Hero Image] Upload error:', e); showToast('Upload error: ' + e.message, 'error'); return; }
       }
       try {
+        console.log('[Hero Image] Pushing image to array:', { url, fileId });
         images.push({ url, fileId });
+        console.log('[Hero Image] Current images array:', images);
         await db.collection('settings').doc('hero').set({ images }, { merge: true });
+        console.log('[Hero Image] Firestore save successful');
         showToast('Hero image added!', 'success');
         const hu = document.getElementById('hUrl');
         if (hu) hu.value = '';
         const hf = document.getElementById('hFile');
         if (hf) hf.value = '';
         renderHeroImgGrid(images);
-      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+      } catch(e) { console.error('[Hero Image] Error:', e); showToast('Error: ' + e.message, 'error'); }
     });
   },
 
