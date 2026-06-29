@@ -154,8 +154,8 @@ function showPanel(user) {
   document.getElementById('userEmail').textContent = user.email;
   document.getElementById('userInitial').textContent = (user.email || 'A')[0].toUpperCase();
 
-  // Auto-connect Drive silently using the admin's Google account
-  autoConnectDrive(user.email);
+  // Drive uploads go through GAS per-file now, no persistent connect needed
+  setDriveStatus('Drive Ready (GAS)', true);
   setupSidebar();
   loadTab('dashboard');
   loadNoticeBadge();
