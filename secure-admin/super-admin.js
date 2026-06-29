@@ -30,7 +30,7 @@ const db   = firebase.firestore();
    — No popup, no OAuth token, no client-side Drive API calls.
    — All Drive operations go through your GAS web app.
 ============================================================ */
-const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzJ30o2a5MkrRC4OTSpBPT-bLhMnxJRjfUauaJxOG8Vkl8IhCZXMY4x-4Y-_K174nl7oQ/exec';
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxsRG9NrvH3Wt0FgIsAw0u5qLqmoVi310KtWfAc1QqYErJkAlis0hApcFbtAu2NdtASpw/exec';
 
 function setDriveStatus(text, connected) {
   const el = document.getElementById('driveStatus');
