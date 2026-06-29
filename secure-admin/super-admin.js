@@ -73,11 +73,19 @@ async function uploadViaGAS(file, folderName = 'Uploads') {
       fileName: file.name
     };
     const res = await fetch(GAS_WEBAPP_URL, {
-      method:  'POST',
-      body:    JSON.stringify(payload),
-      headers: { 'Content-Type': 'text/plain' } // GAS requires text/plain to avoid CORS preflight
+      method:   'POST',
+      body:     JSON.stringify(payload),
+      headers:  { 'Content-Type': 'text/plain' }, // GAS requires text/plain to avoid CORS preflight
+      redirect: 'follow'                           // ✅ FIX: follow GAS redirect so response parses as JSON
     });
-    const data = await res.json();
+    const rawText = await res.text();
+    let data;
+    try { data = JSON.parse(rawText); }
+    catch(parseErr) {
+      console.error('GAS raw response (not JSON):', rawText.substring(0, 300));
+      throw new Error('GAS returned non-JSON. Check deployment URL and "Execute as: Me" setting.');
+    }
+    console.log('GAS upload response:', data);
     if (!data.success) throw new Error(data.error || 'Upload failed');
     setDriveStatus('Drive Connected', true);
     return { url: data.url, fileId: data.fileId };
@@ -97,9 +105,10 @@ async function deleteFileFromDrive(fileId) {
   if (!fileId) return; // no Drive file to delete (URL-only entries)
   try {
     const res = await fetch(GAS_WEBAPP_URL, {
-      method:  'POST',
-      body:    JSON.stringify({ action: 'deleteFile', fileId }),
-      headers: { 'Content-Type': 'text/plain' }
+      method:   'POST',
+      body:     JSON.stringify({ action: 'deleteFile', fileId }),
+      headers:  { 'Content-Type': 'text/plain' },
+      redirect: 'follow' // ✅ FIX: follow GAS redirect
     });
     const data = await res.json();
     if (!data.success) console.warn('Drive delete warning:', data.error);
