@@ -1270,6 +1270,35 @@ async function loadDynamicContent() {
       });
     }
 
+    // Courses
+    // FIX: courses added via super-admin were saved to Firestore but this page
+    // never read them back — the grid was permanently the hardcoded fallback below.
+    const courseSnap = await db.collection('courses').get();
+    if (!courseSnap.empty) {
+      const cg = document.getElementById('coursesGrid');
+      const palette = [
+        { bg:'rgba(201,168,76,0.12)', color:'var(--gold)' },
+        { bg:'rgba(30,203,225,0.12)', color:'var(--teal)' },
+        { bg:'rgba(99,102,241,0.12)', color:'#6366F1' },
+        { bg:'rgba(239,68,68,0.12)', color:'#EF4444' },
+        { bg:'rgba(34,197,94,0.12)', color:'#22C55E' },
+        { bg:'rgba(249,115,22,0.12)', color:'#F97316' }
+      ];
+      cg.innerHTML = '';
+      let i = 0;
+      courseSnap.forEach(doc => {
+        const c = doc.data();
+        const p = palette[i % palette.length]; i++;
+        cg.innerHTML += `
+          <div class="card course-card">
+            <div class="course-icon" style="background:${p.bg}; color:${p.color};">${c.icon || '📚'}</div>
+            <h3>${c.title || ''}</h3>
+            <p>${c.description || ''}</p>
+            <span class="course-tag">${c.tag || ''}</span>
+          </div>`;
+      });
+    }
+
     // Leaderboard
     const lbSnap = await db.collection('leaderboard').orderBy('score', 'desc').limit(10).get();
     if (!lbSnap.empty) {
