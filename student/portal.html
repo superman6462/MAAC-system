@@ -397,6 +397,7 @@ tbody tr:hover td{background:var(--border)}
       <button data-tab="attendance">📋 Attend</button>
       <button data-tab="results">📈 Results</button>
       <button data-tab="homework">📝 Homework</button>
+      <button data-tab="quiz">❓ Quiz</button>
       <button data-tab="schedule">🕒 Schedule</button>
       <button data-tab="leaderboard">🏆 Ranks</button>
       <button data-tab="notices">📢 Notices</button>
@@ -438,6 +439,7 @@ tbody tr:hover td{background:var(--border)}
     <button class="sb-btn" data-tab="attendance"><i class="fas fa-clipboard-check"></i> Attendance</button>
     <button class="sb-btn" data-tab="results"><i class="fas fa-chart-line"></i> Results</button>
     <button class="sb-btn" data-tab="homework"><i class="fas fa-book-open"></i> Homework <span class="sb-badge" id="hwBadge" style="display:none">0</span></button>
+    <button class="sb-btn" data-tab="quiz"><i class="fas fa-question-circle"></i> Quiz <span class="sb-badge" id="quizBadge" style="display:none">0</span></button>
     <button class="sb-btn" data-tab="schedule"><i class="fas fa-calendar-days"></i> Schedule</button>
 
     <div class="sb-label">Community</div>
@@ -656,6 +658,24 @@ tbody tr:hover td{background:var(--border)}
           </div>
           <div id="doneHw"><span class="pulse"></span><span class="pulse" style="width:65%"></span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         QUIZ
+    ============================================================ -->
+    <div id="tab-quiz" class="section">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd">
+          <h3>❓ Available Quizzes <span class="badge b-yellow" id="quizAvailCount">0</span></h3>
+        </div>
+        <div id="quizAvailList"><span class="pulse"></span><span class="pulse" style="width:80%"></span></div>
+      </div>
+      <div class="card">
+        <div class="card-hd">
+          <h3>✅ Completed Quizzes <span class="badge b-green" id="quizDoneCount">0</span></h3>
+        </div>
+        <div id="quizDoneList"><span class="pulse"></span><span class="pulse" style="width:65%"></span></div>
       </div>
     </div>
 
@@ -907,6 +927,7 @@ tbody tr:hover td{background:var(--border)}
     <button class="mob-btn" data-tab="attendance"><i class="fas fa-clipboard-check"></i>Attend</button>
     <button class="mob-btn" data-tab="results"><i class="fas fa-chart-line"></i>Results</button>
     <button class="mob-btn" data-tab="homework"><i class="fas fa-book-open"></i>HW<div class="mob-dot" id="mobHwDot"></div></button>
+    <button class="mob-btn" data-tab="quiz"><i class="fas fa-question-circle"></i>Quiz<div class="mob-dot" id="mobQuizDot"></div></button>
     <button class="mob-btn" data-tab="leaderboard"><i class="fas fa-trophy"></i>Ranks</button>
     <button class="mob-btn" data-tab="notices"><i class="fas fa-bell"></i>Notices<div class="mob-dot" id="mobNoticeDot"></div></button>
     <button class="mob-btn" data-tab="profile"><i class="fas fa-user"></i>Profile</button>
@@ -918,6 +939,7 @@ tbody tr:hover td{background:var(--border)}
 ================================================================ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="quiz-core.js"></script>
 <script>
 /* ----------------------------------------------------------------
    FIREBASE
@@ -1679,6 +1701,62 @@ async function loadFees(){
   } catch(e){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--danger)">Error loading fees.</td></tr>`;}
 }
 
+/* ---- QUIZ ---- */
+async function loadQuiz(){
+  const availEl=document.getElementById('quizAvailList');
+  const doneEl=document.getElementById('quizDoneList');
+  availEl.innerHTML=doneEl.innerHTML='<span class="pulse"></span><span class="pulse" style="width:75%"></span>';
+  try{
+    const [quizzes, myResults] = await Promise.all([
+      listQuizzes({classId: student.class, status:'active'}),
+      getStudentQuizResults(student.id)
+    ]);
+    const resultMap={};
+    myResults.forEach(r=>resultMap[r.quizId]=r);
+
+    let availHtml='',doneHtml='',availCount=0,doneCount=0;
+    quizzes.forEach(q=>{
+      const result=resultMap[q.id];
+      const qCount=(q.questions||[]).length;
+      if(result){
+        doneCount++;
+        const pct=result.total?Math.round((result.score/result.total)*100):0;
+        doneHtml+=`<div class="hw-card hw-done">
+          <h4>${q.title}</h4>
+          <p>${q.subject||''} · Score: ${result.score}/${result.total} (${pct}%)</p>
+          <div style="margin-top:8px"><span class="badge b-green"><i class="fas fa-check"></i> Completed</span></div>
+        </div>`;
+      } else if(qCount>0){
+        availCount++;
+        availHtml+=`<div class="hw-card">
+          <h4>${q.title}</h4>
+          <p style="margin-bottom:6px">${q.subject||'General'} · ${qCount} questions · ${q.duration||30} min</p>
+          <div class="hw-actions">
+            <div style="font-size:.78rem;color:var(--muted)">${q.description||''}</div>
+            <button class="btn btn-xs btn-primary" onclick="startQuiz('${q.id}')"><i class="fas fa-play"></i> Attend Quiz</button>
+          </div>
+        </div>`;
+      }
+    });
+    availEl.innerHTML=availHtml||'<div class="empty-state"><i class="fas fa-circle-check"></i><p>No quizzes available right now.</p></div>';
+    doneEl.innerHTML=doneHtml||'<div class="empty-state"><i class="fas fa-inbox"></i><p>No completed quizzes yet.</p></div>';
+    document.getElementById('quizAvailCount').textContent=availCount;
+    document.getElementById('quizDoneCount').textContent=doneCount;
+    if(availCount>0){
+      document.getElementById('quizBadge').textContent=availCount;
+      document.getElementById('quizBadge').style.display='inline';
+      document.getElementById('mobQuizDot').style.display='block';
+    }
+  } catch(e){availEl.innerHTML='<p style="color:var(--danger);font-size:.83rem">Error loading quizzes.</p>';doneEl.innerHTML='';}
+}
+
+function startQuiz(quizId){
+  // Opens the standalone quiz-attempt page, pre-filled via URL so the student
+  // doesn't need to re-enter their ID/name — quiz-attempt.html still shows
+  // the confirm screen so they can verify details before starting.
+  window.open(`quiz-attempt.html?quiz=${quizId}&sid=${encodeURIComponent(student.id)}&sname=${encodeURIComponent(student.name)}`, '_blank');
+}
+
 /* ---- PROFILE ---- */
 function loadProfile(){
   document.getElementById('profileBigAvatar').textContent=student.name[0].toUpperCase();
@@ -1707,6 +1785,7 @@ function loadTabData(tab){
     case 'attendance':  loadAttendance();  break;
     case 'results':     loadResults();     break;
     case 'homework':    loadHomework();    break;
+    case 'quiz':        loadQuiz();        break;
     case 'schedule':    loadSchedule('Saturday'); break;
     case 'leaderboard': loadLeaderboard(); break;
     case 'notices':     loadNotices();     break;
