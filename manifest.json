@@ -2,10 +2,11 @@
   "name": "MAAC – Master Academic & Admission Care",
   "short_name": "MAAC",
   "description": "Complete school management & coaching app – offline attendance, results, finance, and more.",
-  "start_url": "/student/",
+  "start_url": "/student-login.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1A73E8",
-  "theme_color": "#1A73E8",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
   "orientation": "any",
   "icons": [
     {
