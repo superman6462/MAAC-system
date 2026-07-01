@@ -1305,7 +1305,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // PWA
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then(reg => { reg.update(); })
+    .catch(() => {});
 }
 </script>
 </body>
