@@ -123,7 +123,37 @@ async function init() {
     app.innerHTML = `<div class="state-msg"><i class="fas fa-circle-question"></i>This quiz has no questions yet.</div>`;
     return;
   }
+
+  // Registered students coming from the portal are already identified —
+  // skip the manual ID/name entry and go straight into the quiz.
+  // Anyone opening the raw share link (no portal=1 flag) must type in
+  // their name & student ID/number before they can start.
+  const isPortalStudent = params.get('portal') === '1';
+  const prefId = params.get('sid');
+  const prefName = params.get('sname');
+
+  if (isPortalStudent && prefId && prefName) {
+    studentId = prefId;
+    studentName = prefName;
+    await startPortalQuiz();
+    return;
+  }
+
   renderIdentifyForm();
+}
+
+async function startPortalQuiz() {
+  app.innerHTML = `<div class="state-msg"><i class="fas fa-spinner fa-spin"></i>Loading your quiz…</div>`;
+  try {
+    const prior = await hasAttempted(quizId, studentId);
+    if (prior) {
+      renderResult(prior);
+      return;
+    }
+  } catch (e) { /* proceed anyway */ }
+
+  selectedAnswers = new Array(quiz.questions.length).fill(null);
+  renderQuiz();
 }
 
 function renderIdentifyForm() {
@@ -213,8 +243,8 @@ function renderQuiz() {
   app.innerHTML = `
     <div class="card" style="padding:16px 22px">
       <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:8px">
-        <span>${answeredCount} of ${quiz.questions.length} answered</span>
-        <span>${pct}%</span>
+        <span>${studentName ? `<i class="fas fa-user"></i> ${studentName}` : `${answeredCount} of ${quiz.questions.length} answered`}</span>
+        <span>${answeredCount} of ${quiz.questions.length} answered · ${pct}%</span>
       </div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     </div>
