@@ -385,6 +385,63 @@
       background: var(--gold); flex-shrink: 0; margin-top: 6px;
     }
     .notice-date { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+    .notice-item.hidden-notice { display: none; }
+    .see-more-wrap { display: flex; justify-content: center; margin-top: 24px; }
+    .see-more-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 26px; border-radius: 100px;
+      font-size: 0.85rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: transparent; color: var(--text);
+      transition: all var(--transition);
+    }
+    .see-more-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+    .see-more-btn i { transition: transform var(--transition); }
+    .see-more-btn.expanded i { transform: rotate(180deg); }
+
+    /* ============================================================
+       DETAIL MODAL (Courses / Teachers)
+    ============================================================ */
+    .detail-modal-overlay {
+      position: fixed; inset: 0; z-index: 3000;
+      background: rgba(10,22,40,0.6);
+      backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; transition: opacity var(--transition);
+    }
+    .detail-modal-overlay.open { display: flex; opacity: 1; }
+    .detail-modal {
+      background: var(--card-bg); border-radius: var(--radius);
+      max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto;
+      padding: 32px; position: relative;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(16px); transition: transform var(--transition);
+    }
+    .detail-modal-overlay.open .detail-modal { transform: translateY(0); }
+    .detail-modal-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--border); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); font-size: 1rem;
+      transition: all var(--transition);
+    }
+    .detail-modal-close:hover { background: var(--gold); color: var(--navy); }
+    .detail-modal-icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.7rem; margin-bottom: 18px;
+    }
+    .detail-modal-avatar {
+      width: 96px; height: 96px; border-radius: 50%;
+      object-fit: cover; margin-bottom: 18px;
+      border: 3px solid var(--gold);
+    }
+    .detail-modal h3 { font-size: 1.4rem; margin-bottom: 6px; }
+    .detail-modal .detail-modal-subtitle { color: var(--gold); font-weight: 600; font-size: 0.9rem; margin-bottom: 16px; }
+    .detail-modal .detail-modal-body { color: var(--muted); font-size: 0.95rem; line-height: 1.8; }
+    .detail-modal .course-tag { margin-top: 18px; }
 
     /* ============================================================
        TEACHERS
@@ -746,37 +803,37 @@
     </div>
     <div class="courses-grid" id="coursesGrid">
       <!-- Static fallback, replaced by Firebase if available -->
-      <div class="card course-card">
+      <div class="card course-card" onclick="openCourseModal('SSC পরীক্ষা প্রস্তুতি','বোর্ড পরীক্ষার জন্য সম্পূর্ণ প্রস্তুতি। সাপ্তাহিক মডেল টেস্ট ও বিশেষ নোট সহ।','Board Exam','📚','rgba(201,168,76,0.12)','var(--gold)')">
         <div class="course-icon" style="background:rgba(201,168,76,0.12); color:var(--gold);">📚</div>
         <h3>SSC পরীক্ষা প্রস্তুতি</h3>
         <p>বোর্ড পরীক্ষার জন্য সম্পূর্ণ প্রস্তুতি। সাপ্তাহিক মডেল টেস্ট ও বিশেষ নোট সহ।</p>
         <span class="course-tag">Board Exam</span>
       </div>
-      <div class="card course-card">
+      <div class="card course-card" onclick="openCourseModal('HSC পরীক্ষা প্রস্তুতি','একাদশ ও দ্বাদশ শ্রেণীর সকল বিষয়ের গভীর প্রস্তুতি ও অ্যাডমিশন গাইড।','Board Exam','🎓','rgba(30,203,225,0.12)','var(--teal)')">
         <div class="course-icon" style="background:rgba(30,203,225,0.12); color:var(--teal);">🎓</div>
         <h3>HSC পরীক্ষা প্রস্তুতি</h3>
         <p>একাদশ ও দ্বাদশ শ্রেণীর সকল বিষয়ের গভীর প্রস্তুতি ও অ্যাডমিশন গাইড।</p>
         <span class="course-tag">Board Exam</span>
       </div>
-      <div class="card course-card">
+      <div class="card course-card" onclick="openCourseModal('University Admission','বিশ্ববিদ্যালয় ভর্তি পরীক্ষার জন্য বিশেষ কোর্স। ঢাকা, রাজশাহী ও BUET-কেন্দ্রিক।','Admission','🏛️','rgba(99,102,241,0.12)','#6366F1')">
         <div class="course-icon" style="background:rgba(99,102,241,0.12); color:#6366F1;">🏛️</div>
         <h3>University Admission</h3>
         <p>বিশ্ববিদ্যালয় ভর্তি পরীক্ষার জন্য বিশেষ কোর্স। ঢাকা, রাজশাহী ও BUET-কেন্দ্রিক।</p>
         <span class="course-tag">Admission</span>
       </div>
-      <div class="card course-card">
+      <div class="card course-card" onclick="openCourseModal('বিজ্ঞান বিভাগ','পদার্থ, রসায়ন ও গণিত — বিজ্ঞান বিভাগের সকল বিষয়ের বিশেষ ক্লাস।','Science','🔬','rgba(239,68,68,0.12)','#EF4444')">
         <div class="course-icon" style="background:rgba(239,68,68,0.12); color:#EF4444;">🔬</div>
         <h3>বিজ্ঞান বিভাগ</h3>
         <p>পদার্থ, রসায়ন ও গণিত — বিজ্ঞান বিভাগের সকল বিষয়ের বিশেষ ক্লাস।</p>
         <span class="course-tag">Science</span>
       </div>
-      <div class="card course-card">
+      <div class="card course-card" onclick="openCourseModal('বাণিজ্য বিভাগ','অ্যাকাউন্টিং, ফিন্যান্স ও ব্যবসায় শিক্ষার বিশেষ কোর্স।','Commerce','💼','rgba(34,197,94,0.12)','#22C55E')">
         <div class="course-icon" style="background:rgba(34,197,94,0.12); color:#22C55E;">💼</div>
         <h3>বাণিজ্য বিভাগ</h3>
         <p>অ্যাকাউন্টিং, ফিন্যান্স ও ব্যবসায় শিক্ষার বিশেষ কোর্স।</p>
         <span class="course-tag">Commerce</span>
       </div>
-      <div class="card course-card">
+      <div class="card course-card" onclick="openCourseModal('বাংলা ও ইংরেজি','ভাষা দক্ষতা বৃদ্ধি, রচনা লেখা, ব্যাকরণ ও কমিউনিকেশন স্কিল।','Language','✍️','rgba(249,115,22,0.12)','#F97316')">
         <div class="course-icon" style="background:rgba(249,115,22,0.12); color:#F97316;">✍️</div>
         <h3>বাংলা ও ইংরেজি</h3>
         <p>ভাষা দক্ষতা বৃদ্ধি, রচনা লেখা, ব্যাকরণ ও কমিউনিকেশন স্কিল।</p>
@@ -820,6 +877,11 @@
         </div>
       </div>
     </div>
+    <div class="see-more-wrap" id="noticeSeeMoreWrap" style="display:none;">
+      <button class="see-more-btn" id="noticeSeeMoreBtn" onclick="toggleNoticeSeeMore()">
+        <span id="noticeSeeMoreLabel">See More</span> <i class="fas fa-chevron-down"></i>
+      </button>
+    </div>
   </div>
 </section>
 
@@ -836,7 +898,7 @@
         <!-- Fallback teachers -->
         <div class="swiper-slide">
           <div class="card teacher-card">
-            <img class="teacher-avatar" src="https://placehold.co/88x88/0a1628/c9a84c?text=T" alt="Teacher">
+            <img class="teacher-avatar" src="https://placehold.co/88x88/0a1628/c9a84c?text=T" alt="Teacher" loading="lazy">
             <h3>লোড হচ্ছে...</h3>
             <p>বিষয় আসছে</p>
           </div>
@@ -888,16 +950,17 @@
     <div class="section-header center">
       <div class="section-label">Top Performers</div>
       <h2 class="section-title">🏆 সাপ্তাহিক লিডারবোর্ড</h2>
-      <p class="section-sub">এই সপ্তাহের সেরা শিক্ষার্থীরা</p>
+      <p class="section-sub">এই সপ্তাহের সেরা শিক্ষার্থীরা — ৩টি বিষয়, প্রতিটি ২০ নম্বর (মোট ৬০)</p>
     </div>
-    <div class="card" style="overflow:hidden;">
+    <div class="card" style="overflow-x:auto;">
       <table class="leaderboard-table">
         <thead>
           <tr>
             <th>#</th>
             <th>নাম / Name</th>
             <th>ক্লাস / Class</th>
-            <th>স্কোর / Score</th>
+            <th>বিষয়ভিত্তিক নম্বর</th>
+            <th>মোট / Total (60)</th>
           </tr>
         </thead>
         <tbody id="leaderboardBody">
@@ -906,12 +969,21 @@
             <td>লোড হচ্ছে...</td>
             <td>—</td>
             <td>—</td>
+            <td>—</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 </section>
+
+<!-- ============================================================ DETAIL MODAL (Course / Teacher) -->
+<div class="detail-modal-overlay" id="detailModalOverlay" onclick="if(event.target===this) closeDetailModal()">
+  <div class="detail-modal">
+    <button class="detail-modal-close" onclick="closeDetailModal()"><i class="fas fa-times"></i></button>
+    <div id="detailModalContent"></div>
+  </div>
+</div>
 
 <!-- ============================================================ ADMISSION CTA -->
 <section id="admission" class="cta-section section">
@@ -1212,11 +1284,14 @@ async function loadDynamicContent() {
     if (!noticeSnap.empty) {
       const noticeList = document.getElementById('noticeList');
       noticeList.innerHTML = '';
+      const VISIBLE_NOTICES = 3;
+      let idx = 0;
       noticeSnap.forEach(doc => {
         const n = doc.data();
         const date = n.timestamp ? new Date(n.timestamp.seconds*1000).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : '';
+        const hiddenClass = idx >= VISIBLE_NOTICES ? ' hidden-notice' : '';
         noticeList.innerHTML += `
-          <div class="card notice-item">
+          <div class="card notice-item${hiddenClass}">
             <div class="notice-dot"></div>
             <div>
               <strong>${n.title || ''}</strong>
@@ -1224,7 +1299,11 @@ async function loadDynamicContent() {
               ${date ? `<div class="notice-date">${date}</div>` : ''}
             </div>
           </div>`;
+        idx++;
       });
+      // Show "See More" only if there are more notices than the visible limit
+      const seeMoreWrap = document.getElementById('noticeSeeMoreWrap');
+      if (seeMoreWrap) seeMoreWrap.style.display = idx > VISIBLE_NOTICES ? 'flex' : 'none';
     }
 
     // Teachers
@@ -1234,10 +1313,14 @@ async function loadDynamicContent() {
       tw.innerHTML = '';
       teacherSnap.forEach(doc => {
         const t = doc.data();
+        const photo = t.photo || 'https://placehold.co/88x88/0a1628/c9a84c?text=' + encodeURIComponent(t.name?.[0]||'T');
+        const bio = (t.bio || 'বিস্তারিত তথ্য শীঘ্রই যোগ করা হবে।').replace(/'/g, "\\'").replace(/"/g,'&quot;');
+        const name = (t.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const subject = (t.subject||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         tw.innerHTML += `
           <div class="swiper-slide">
-            <div class="card teacher-card">
-              <img class="teacher-avatar" src="${t.photo || 'https://placehold.co/88x88/0a1628/c9a84c?text=' + encodeURIComponent(t.name?.[0]||'T')}" alt="${t.name}" loading="lazy">
+            <div class="card teacher-card" style="cursor:pointer;" onclick="openTeacherModal('${name}','${subject}','${photo}','${bio}')">
+              <img class="teacher-avatar" src="${photo}" alt="${t.name}" loading="lazy">
               <h3>${t.name || ''}</h3>
               <p>${t.subject || ''}</p>
             </div>
@@ -1289,8 +1372,12 @@ async function loadDynamicContent() {
       courseSnap.forEach(doc => {
         const c = doc.data();
         const p = palette[i % palette.length]; i++;
+        const title = (c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const desc = (c.description||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const tag = (c.tag||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const icon = (c.icon||'📚').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         cg.innerHTML += `
-          <div class="card course-card">
+          <div class="card course-card" onclick="openCourseModal('${title}','${desc}','${tag}','${icon}','${p.bg}','${p.color}')">
             <div class="course-icon" style="background:${p.bg}; color:${p.color};">${c.icon || '📚'}</div>
             <h3>${c.title || ''}</h3>
             <p>${c.description || ''}</p>
@@ -1299,18 +1386,23 @@ async function loadDynamicContent() {
       });
     }
 
-    // Leaderboard
+    // Leaderboard — weekly exam: 3 subjects x 20 marks = 60 total.
+    // Ranked by total score desc (ties broken by Firestore document order).
     const lbSnap = await db.collection('leaderboard').orderBy('score', 'desc').limit(10).get();
     if (!lbSnap.empty) {
       let rows = ''; let rank = 1;
       lbSnap.forEach(doc => {
         const s = doc.data();
         const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-n';
+        const subjHtml = Array.isArray(s.subjects) && s.subjects.length
+          ? s.subjects.map(sub => `<span style="display:inline-block;margin-right:10px;">${sub.name}: <strong>${sub.score}</strong></span>`).join('')
+          : '—';
         rows += `<tr>
           <td><div class="rank-badge ${rankClass}">${rank}</div></td>
           <td><strong>${s.name || doc.id}</strong></td>
           <td>${s.class || '—'}</td>
-          <td><strong style="color:var(--gold)">${s.score || 0}</strong></td>
+          <td style="font-size:0.82rem; color:var(--muted);">${subjHtml}</td>
+          <td><strong style="color:var(--gold)">${s.score || 0}/60</strong></td>
         </tr>`;
         rank++;
       });
@@ -1324,6 +1416,66 @@ async function loadDynamicContent() {
   // Init swipers after data loaded
   initSwipers();
 }
+
+// ============================================================
+// NOTICE — SEE MORE / SEE LESS TOGGLE
+// ============================================================
+function toggleNoticeSeeMore() {
+  const hidden = document.querySelectorAll('#noticeList .notice-item.hidden-notice');
+  const btn = document.getElementById('noticeSeeMoreBtn');
+  const label = document.getElementById('noticeSeeMoreLabel');
+  const isExpanded = btn.classList.contains('expanded');
+  document.querySelectorAll('#noticeList .notice-item').forEach(el => {
+    if (isExpanded) {
+      // Collapse: re-hide items beyond the visible limit
+      const idx = Array.from(el.parentNode.children).indexOf(el);
+      if (idx >= 3) el.classList.add('hidden-notice');
+    } else {
+      el.classList.remove('hidden-notice');
+    }
+  });
+  btn.classList.toggle('expanded');
+  label.textContent = isExpanded ? 'See More' : 'See Less';
+  if (isExpanded) {
+    document.getElementById('notice').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ============================================================
+// COURSE / TEACHER DETAIL MODAL
+// ============================================================
+function openCourseModal(title, description, tag, icon, bg, color) {
+  const content = document.getElementById('detailModalContent');
+  content.innerHTML = `
+    <div class="detail-modal-icon" style="background:${bg}; color:${color};">${icon}</div>
+    <h3>${title}</h3>
+    <div class="detail-modal-body">${description}</div>
+    ${tag ? `<span class="course-tag">${tag}</span>` : ''}
+  `;
+  document.getElementById('detailModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openTeacherModal(name, subject, photo, bio) {
+  const content = document.getElementById('detailModalContent');
+  content.innerHTML = `
+    <img class="detail-modal-avatar" src="${photo}" alt="${name}">
+    <h3>${name}</h3>
+    <div class="detail-modal-subtitle">${subject}</div>
+    <div class="detail-modal-body">${bio}</div>
+  `;
+  document.getElementById('detailModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetailModal();
+});
 
 // ============================================================
 // RUN
