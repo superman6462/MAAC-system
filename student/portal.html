@@ -939,7 +939,7 @@ tbody tr:hover td{background:var(--border)}
 ================================================================ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="quiz-core.js"></script>
+<script src="quiz/quiz-core.js"></script>
 <script>
 /* ----------------------------------------------------------------
    FIREBASE
@@ -1756,7 +1756,7 @@ function startQuiz(quizId){
   // quiz-attempt.html skips the manual ID/name entry screen entirely and
   // jumps straight into the quiz. Anyone opening the quiz via the raw share
   // link (no portal flag) still has to type in their name & student ID.
-  window.open(`quiz-attempt.html?quiz=${quizId}&sid=${encodeURIComponent(student.id)}&sname=${encodeURIComponent(student.name)}&portal=1`, '_blank');
+  window.open(`quiz/quiz-attempt.html?quiz=${quizId}&sid=${encodeURIComponent(student.id)}&sname=${encodeURIComponent(student.name)}&portal=1`, '_blank');
 }
 
 /* ---- PROFILE ---- */
