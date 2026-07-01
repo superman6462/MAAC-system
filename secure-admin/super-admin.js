@@ -215,6 +215,7 @@ const PAGE_TITLES = {
   finance: 'Fee Collections & Expenses',
   dueNotifications: 'Due Notifications',
   siteSettings: 'Site Settings',
+  ticker: 'Notice Ticker',
   stats: 'Homepage Stats',
   admins: 'Administrators',
   logs: 'System Logs'
@@ -1173,6 +1174,30 @@ const TABS = {
     } catch(e) {}
 
     area.innerHTML = `
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><span class="card-title">Site Logo</span></div>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">Upload your institute logo. It will replace the default "M" mark in the header and footer across the website.</p>
+        <div style="display:flex; align-items:center; gap:20px; margin-bottom:16px;">
+          <div id="logoPreviewWrap" style="width:80px;height:80px;border-radius:12px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border, rgba(255,255,255,0.08));">
+            ${s.logoUrl
+              ? `<img id="logoPreview" src="${s.logoUrl}" style="width:100%;height:100%;object-fit:cover;">`
+              : `<span style="color:var(--muted);font-size:0.75rem;">No logo</span>`}
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button type="button" class="btn btn-ghost btn-sm" id="lgTabFile" onclick="switchLogoTab('file')" style="background:rgba(201,168,76,0.12);color:var(--gold);"><i class="fas fa-upload"></i> Upload File</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="lgTabUrl"  onclick="switchLogoTab('url')"><i class="fas fa-link"></i> Image URL</button>
+            </div>
+            <div id="lgFileWrap"><input class="form-input" type="file" id="lgFile" accept="image/*"></div>
+            <div id="lgUrlWrap" style="display:none;"><input class="form-input" id="lgUrl" placeholder="https://example.com/logo.png" value="${s.logoUrl||''}"></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" id="saveLogoBtn"><i class="fas fa-save"></i> Save Logo</button>
+          ${s.logoUrl ? `<button class="btn btn-ghost" id="removeLogoBtn"><i class="fas fa-trash"></i> Remove Logo</button>` : ''}
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header"><span class="card-title">Site Settings</span></div>
         <div class="form-grid form-grid-2">
@@ -1202,10 +1227,147 @@ const TABS = {
           whatsapp: document.getElementById('ssWA').value,
           map: document.getElementById('ssMap').value,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true });
         showToast('Settings saved!', 'success');
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
     };
+
+    // ── Logo tab switcher (file vs URL) ──
+    window.switchLogoTab = (tab) => {
+      const fw = document.getElementById('lgFileWrap');
+      const uw = document.getElementById('lgUrlWrap');
+      const fb = document.getElementById('lgTabFile');
+      const ub = document.getElementById('lgTabUrl');
+      if (tab === 'file') {
+        fw.style.display=''; uw.style.display='none';
+        fb.style.cssText='background:rgba(201,168,76,0.12);color:var(--gold);'; ub.style.cssText='';
+      } else {
+        fw.style.display='none'; uw.style.display='';
+        ub.style.cssText='background:rgba(201,168,76,0.12);color:var(--gold);'; fb.style.cssText='';
+      }
+    };
+
+    document.getElementById('saveLogoBtn').addEventListener('click', async () => {
+      const isUrlMode = document.getElementById('lgUrlWrap').style.display !== 'none';
+      let url = '', fileId = '';
+      if (isUrlMode) {
+        url = document.getElementById('lgUrl').value.trim();
+        if (!url) { showToast('Enter a logo image URL', 'error'); return; }
+      } else {
+        const file = document.getElementById('lgFile').files[0];
+        if (!file) { showToast('Select a logo image file', 'error'); return; }
+        showToast('Uploading to Drive…', 'info');
+        try {
+          const result = await uploadViaGAS(file, 'Logo');
+          url = result.url; fileId = result.fileId;
+        } catch(e) { showToast('Upload error: ' + e.message, 'error'); return; }
+      }
+      try {
+        const oldFileId = s.logoFileId;
+        await db.collection('settings').doc('site').set({
+          logoUrl: url,
+          logoFileId: fileId || ''
+        }, { merge: true });
+        if (oldFileId && oldFileId !== fileId) await deleteFileFromDrive(oldFileId).catch(()=>{});
+        showToast('Logo saved!', 'success');
+        s.logoUrl = url; s.logoFileId = fileId;
+        TABS.siteSettings(area);
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    });
+
+    const removeBtn = document.getElementById('removeLogoBtn');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', async () => {
+        if (!confirm('Remove the current logo? The site will fall back to the default mark.')) return;
+        try {
+          await db.collection('settings').doc('site').set({ logoUrl: '', logoFileId: '' }, { merge: true });
+          if (s.logoFileId) await deleteFileFromDrive(s.logoFileId).catch(()=>{});
+          showToast('Logo removed', 'success');
+          s.logoUrl = ''; s.logoFileId = '';
+          TABS.siteSettings(area);
+        } catch(e) { showToast('Error: ' + e.message, 'error'); }
+      });
+    }
+  },
+
+  /* ---- NOTICE TICKER ---- */
+  async ticker(area) {
+    let items = [];
+    try {
+      const doc = await db.collection('settings').doc('ticker').get();
+      if (doc.exists && Array.isArray(doc.data().items)) items = doc.data().items;
+    } catch(e) {}
+
+    function renderList() {
+      const el = document.getElementById('tickerList');
+      if (!el) return;
+      if (!items.length) {
+        el.innerHTML = '<div class="empty-state"><i class="fas fa-rotate"></i><p>No ticker messages yet. Add one below.</p></div>';
+        return;
+      }
+      el.innerHTML = items.map((txt, idx) => `
+        <div class="card" style="display:flex; align-items:center; gap:10px; padding:12px 16px; margin-bottom:10px;">
+          <i class="fas fa-star" style="color:var(--gold); font-size:0.8rem;"></i>
+          <input class="form-input tickerItemInput" data-idx="${idx}" value="${(txt||'').replace(/"/g,'&quot;')}" style="flex:1;">
+          <button class="btn btn-ghost btn-sm tickerUpBtn" data-idx="${idx}" title="Move up" ${idx===0?'disabled':''}><i class="fas fa-arrow-up"></i></button>
+          <button class="btn btn-ghost btn-sm tickerDownBtn" data-idx="${idx}" title="Move down" ${idx===items.length-1?'disabled':''}><i class="fas fa-arrow-down"></i></button>
+          <button class="btn btn-danger btn-sm tickerDelBtn" data-idx="${idx}" title="Delete"><i class="fas fa-trash"></i></button>
+        </div>`).join('');
+
+      el.querySelectorAll('.tickerDelBtn').forEach(btn => btn.addEventListener('click', () => {
+        items.splice(+btn.dataset.idx, 1);
+        renderList();
+      }));
+      el.querySelectorAll('.tickerUpBtn').forEach(btn => btn.addEventListener('click', () => {
+        const i = +btn.dataset.idx;
+        if (i > 0) { [items[i-1], items[i]] = [items[i], items[i-1]]; renderList(); }
+      }));
+      el.querySelectorAll('.tickerDownBtn').forEach(btn => btn.addEventListener('click', () => {
+        const i = +btn.dataset.idx;
+        if (i < items.length - 1) { [items[i+1], items[i]] = [items[i], items[i+1]]; renderList(); }
+      }));
+    }
+
+    area.innerHTML = `
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><span class="card-title">Homepage Ticker Messages</span></div>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">These messages scroll across the ticker bar at the top of the homepage. Add, edit, reorder, or remove them below, then click Save.</p>
+        <div id="tickerList"></div>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <input class="form-input" id="newTickerText" placeholder="Type a new ticker message…" style="flex:1;">
+          <button class="btn btn-outline" id="addTickerBtn"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div style="margin-top:20px;">
+          <button class="btn btn-primary" id="saveTickerBtn"><i class="fas fa-save"></i> Save Ticker</button>
+        </div>
+      </div>`;
+
+    renderList();
+
+    document.getElementById('addTickerBtn').addEventListener('click', () => {
+      const input = document.getElementById('newTickerText');
+      const val = input.value.trim();
+      if (!val) { showToast('Type a message first', 'error'); return; }
+      items.push(val);
+      input.value = '';
+      renderList();
+    });
+
+    document.getElementById('saveTickerBtn').addEventListener('click', async () => {
+      // Pull latest values from inputs (in case user edited text directly)
+      document.querySelectorAll('.tickerItemInput').forEach(inp => {
+        items[+inp.dataset.idx] = inp.value;
+      });
+      items = items.map(t => (t||'').trim()).filter(Boolean);
+      try {
+        await db.collection('settings').doc('ticker').set({
+          items,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Ticker updated!', 'success');
+        renderList();
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    });
   },
 
   /* ---- HOMEPAGE STATS ---- */
