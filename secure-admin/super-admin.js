@@ -869,6 +869,12 @@ const TABS = {
             <label class="form-label">Body / Details</label>
             <textarea class="form-input" id="nBody" placeholder="Notice details…" rows="3"></textarea>
           </div>
+          <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="nNotifyUpdate" style="width:16px;height:16px;">
+            <label for="nNotifyUpdate" style="font-size:0.85rem; color:var(--muted); cursor:pointer;">
+              Also trigger "Update Available" banner for all active students
+            </label>
+          </div>
           <div>
             <button class="btn btn-primary" onclick="addNotice()"><i class="fas fa-bullhorn"></i> Post Notice</button>
           </div>
@@ -884,13 +890,22 @@ const TABS = {
     window.addNotice = async () => {
       const title = document.getElementById('nTitle').value.trim();
       if (!title) { showToast('Title required', 'error'); return; }
+      const notifyUpdate = document.getElementById('nNotifyUpdate').checked;
       try {
         await db.collection('notifications').add({
           type: 'notice', title, body: document.getElementById('nBody').value,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        showToast('Notice posted!', 'success');
+        if (notifyUpdate) {
+          await db.collection('settings').doc('appVersion').set({
+            version: Date.now(),
+            message: title,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        showToast(notifyUpdate ? 'Notice posted & students notified!' : 'Notice posted!', 'success');
         ['nTitle','nBody'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('nNotifyUpdate').checked = false;
         await loadNoticeList();
         loadNoticeBadge();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
@@ -1198,7 +1213,25 @@ const TABS = {
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><span class="card-title">App Updates</span></div>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+          Notify every student currently using the app that a new version or announcement is available.
+          This shows an "Update Available" banner with sound/vibration on their device — works even without push notification servers.
+        </p>
+        <div class="form-grid form-grid-2">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Update Message (optional)</label>
+            <input class="form-input" id="updateMsg" placeholder="e.g. New results published, please refresh">
+          </div>
+          <div>
+            <button class="btn btn-primary" id="sendUpdateBtn"><i class="fas fa-bullhorn"></i> Send Update Notification</button>
+          </div>
+        </div>
+        <p style="font-size:0.75rem; color:var(--muted); margin-top:10px;" id="lastUpdateSentInfo"></p>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
         <div class="card-header"><span class="card-title">Site Settings</span></div>
         <div class="form-grid form-grid-2">
           <div class="form-group"><label class="form-label">Institute Name</label><input class="form-input" id="ssName" value="${s.name||''}"></div>
@@ -1231,6 +1264,32 @@ const TABS = {
         showToast('Settings saved!', 'success');
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
     };
+
+    // ── App update notification (manual) ──
+    (async () => {
+      try {
+        const vDoc = await db.collection('settings').doc('appVersion').get();
+        const info = document.getElementById('lastUpdateSentInfo');
+        if (vDoc.exists && info) {
+          const v = vDoc.data();
+          const when = v.updatedAt ? new Date(v.updatedAt.seconds * 1000).toLocaleString() : '';
+          info.textContent = when ? `Last sent: ${when}${v.message ? ' — "' + v.message + '"' : ''}` : '';
+        }
+      } catch(e) {}
+    })();
+
+    document.getElementById('sendUpdateBtn').addEventListener('click', async () => {
+      const msg = document.getElementById('updateMsg').value.trim();
+      try {
+        await db.collection('settings').doc('appVersion').set({
+          version: Date.now(),
+          message: msg || '',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Update notification sent to all active students!', 'success');
+        document.getElementById('updateMsg').value = '';
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    });
 
     // ── Logo tab switcher (file vs URL) ──
     window.switchLogoTab = (tab) => {
