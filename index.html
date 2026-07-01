@@ -177,6 +177,7 @@
       color: var(--gold); font-size: 1.1rem; font-weight: 700;
     }
     .logo-text span { color: var(--gold); }
+    .logo-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
 
     .nav-links {
       display: flex; align-items: center; gap: 4px;
@@ -633,9 +634,9 @@
 <!-- ============================================================ HEADER -->
 <header>
   <div class="container navbar">
-    <a href="#home" class="logo">
-      <div class="logo-mark">M</div>
-      <span class="logo-text">MA<span>AC</span></span>
+    <a href="#home" class="logo" id="headerLogo">
+      <div class="logo-mark" id="headerLogoMark">M</div>
+      <span class="logo-text" id="headerLogoText">MA<span>AC</span></span>
     </a>
     <nav>
       <ul class="nav-links">
@@ -991,9 +992,9 @@
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <div class="logo" style="margin-bottom:16px;">
-          <div class="logo-mark">M</div>
-          <span>MAAC</span>
+        <div class="logo" style="margin-bottom:16px;" id="footerLogo">
+          <div class="logo-mark" id="footerLogoMark">M</div>
+          <span id="footerLogoText">MAAC</span>
         </div>
         <p>Master Academic & Admission Care — Kalitola, Bogura-র প্রিমিয়াম কোচিং সেন্টার।</p>
         <div class="social-row" style="margin-top:20px;">
@@ -1162,6 +1163,33 @@ async function loadDynamicContent() {
       if (heroImgEl && Array.isArray(h.images) && h.images.length > 0 && h.images[0].url) {
         heroImgEl.src = h.images[0].url;
         heroImgEl.alt = 'MAAC Hero Image';
+      }
+    }
+
+    // Site settings — logo
+    const siteDoc = await db.collection('settings').doc('site').get();
+    if (siteDoc.exists) {
+      const site = siteDoc.data();
+      if (site.logoUrl) {
+        const markHTML = `<img src="${site.logoUrl}" alt="${site.name || 'MAAC'} Logo">`;
+        const headerMark = document.getElementById('headerLogoMark');
+        const footerMark = document.getElementById('footerLogoMark');
+        if (headerMark) headerMark.innerHTML = markHTML;
+        if (footerMark) footerMark.innerHTML = markHTML;
+      }
+    }
+
+    // Ticker messages
+    const tickerDoc = await db.collection('settings').doc('ticker').get();
+    if (tickerDoc.exists && Array.isArray(tickerDoc.data().items) && tickerDoc.data().items.length) {
+      const items = tickerDoc.data().items;
+      const tickerEl = document.getElementById('tickerContent');
+      if (tickerEl) {
+        // Duplicate the list once for seamless infinite scroll
+        const buildItems = list => list.map(txt =>
+          `<span class="ticker-item"><span class="ticker-dot">★</span> ${txt}</span>`
+        ).join('');
+        tickerEl.innerHTML = buildItems(items) + buildItems(items);
       }
     }
 
