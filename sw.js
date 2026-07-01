@@ -1,27 +1,9 @@
-const CACHE_NAME = 'maac-v1.0';
+const CACHE_NAME = 'maac-v1.1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/assets/css/style.css',
-  '/assets/js/main.js',
-  '/firebase/firebase-config.js',
-  '/shared/auth.js',
-  '/shared/db.js',
-  '/offline/idb.js',
-  '/offline/offline-queue.js',
-  '/student/index.html',
-  '/student/student.js',
-  '/teacher/index.html',
-  '/teacher/teacher.js',
-  '/manager/index.html',
-  '/manager/manager.js',
-  '/admin/index.html',
-  '/admin/admin.js',
-  '/chairman/index.html',
-  '/chairman/chairman.js',
-  '/secure-admin/index.html',
-  '/secure-admin/secure-admin.js'
+  '/student-login.html',
+  '/manifest.json'
 ];
 
 // Install – cache static assets
@@ -29,7 +11,14 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
+  // Do NOT auto skipWaiting — let the page prompt the user first (see message listener below)
+});
+
+// Listen for the page telling us to activate the new version now
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate – clean old caches
@@ -37,9 +26,12 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
       keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-    ))
+    )).then(() => self.clients.claim())
+     .then(() => self.clients.matchAll())
+     .then(clientsArr => {
+       clientsArr.forEach(client => client.postMessage({ type: 'SW_ACTIVATED', cache: CACHE_NAME }));
+     })
   );
-  self.clients.claim();
 });
 
 // Fetch – cache-first, then network
