@@ -1,4 +1,4 @@
-const CACHE_NAME = 'maac-v1.3';
+const CACHE_NAME = 'maac-v1.4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -44,29 +44,13 @@ self.addEventListener('fetch', event => {
   }
 
   // ── NAVIGATION REQUESTS (full page loads / clicking links) ──
-  // Handle these separately and let the browser follow redirects (e.g. Cloudflare's
-  // .html -> extensionless 308) natively. Re-wrapping a navigation fetch inside the
-  // service worker without explicit redirect handling caused ERR_FAILED.
+  // Deliberately NOT intercepted. Letting the browser handle navigations natively
+  // avoids conflicts with Cloudflare's own redirect/routing layer (e.g. the
+  // .html -> extensionless 308), which was causing ERR_FAILED when the service
+  // worker re-wrapped these requests. Offline support for navigations is handled
+  // separately below via a fallback only when the network is actually down.
   if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request, { redirect: 'follow' })
-        .then(response => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
-          }
-          return response;
-        })
-        .catch(async () => {
-          // Offline fallback: try the exact cached page, then the cached homepage
-          const cachedPage = await caches.match(event.request);
-          if (cachedPage) return cachedPage;
-          const fallback = await caches.match('/index.html');
-          if (fallback) return fallback;
-          return Response.error();
-        })
-    );
-    return;
+    return; // let it pass straight through to the network/Cloudflare
   }
 
   // ── STATIC ASSETS (css, js, images, fonts, etc.) ──
