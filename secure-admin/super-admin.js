@@ -1134,8 +1134,17 @@ const TABS = {
           <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="exDate" value="${new Date().toISOString().slice(0,10)}"></div>
           <div class="form-group"><label class="form-label">Total Marks</label><input class="form-input" type="number" id="exTotal" placeholder="100"></div>
           <div class="form-group"><label class="form-label">Subject</label><input class="form-input" id="exSubject" placeholder="e.g. Math"></div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Result Sheet (optional — image or PDF)</label>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button type="button" class="btn btn-ghost btn-sm" id="exTabFile" onclick="switchExamTab('file')" style="background:rgba(201,168,76,0.12);color:var(--gold);"><i class="fas fa-upload"></i> Upload File</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="exTabUrl"  onclick="switchExamTab('url')"><i class="fas fa-link"></i> File URL</button>
+            </div>
+            <div id="exFileWrap"><input class="form-input" type="file" id="exFile" accept="image/*,.pdf"></div>
+            <div id="exUrlWrap" style="display:none;"><input class="form-input" id="exUrl" placeholder="https://drive.google.com/..."></div>
+          </div>
           <div>
-            <button class="btn btn-primary" onclick="createExam()"><i class="fas fa-file-pen"></i> Create Exam</button>
+            <button class="btn btn-primary" id="createExamBtn"><i class="fas fa-file-pen"></i> Create Exam</button>
           </div>
         </div>
       </div>
@@ -1146,20 +1155,55 @@ const TABS = {
 
     await loadExamList();
 
-    window.createExam = async () => {
+    // ── Tab switcher (file vs URL) for result sheet ──
+    window.switchExamTab = (tab) => {
+      const fw = document.getElementById('exFileWrap');
+      const uw = document.getElementById('exUrlWrap');
+      const fb = document.getElementById('exTabFile');
+      const ub = document.getElementById('exTabUrl');
+      if (tab === 'file') {
+        fw.style.display=''; uw.style.display='none';
+        fb.style.cssText='background:rgba(201,168,76,0.12);color:var(--gold);'; ub.style.cssText='';
+      } else {
+        fw.style.display='none'; uw.style.display='';
+        ub.style.cssText='background:rgba(201,168,76,0.12);color:var(--gold);'; fb.style.cssText='';
+      }
+    };
+
+    document.getElementById('createExamBtn').addEventListener('click', async () => {
       const title = document.getElementById('exTitle').value.trim();
       if (!title) { showToast('Title required', 'error'); return; }
+
+      let resultSheetUrl = '', resultSheetFileId = '';
+      const isUrlMode = document.getElementById('exUrlWrap').style.display !== 'none';
+      if (isUrlMode) {
+        resultSheetUrl = document.getElementById('exUrl').value.trim();
+      } else {
+        const file = document.getElementById('exFile').files[0];
+        if (file) {
+          showToast('Uploading result sheet…', 'info');
+          try {
+            const result = await uploadViaGAS(file, 'Results');
+            resultSheetUrl = result.url; resultSheetFileId = result.fileId;
+          } catch(e) { showToast('Upload error: ' + e.message, 'error'); return; }
+        }
+      }
+
       try {
         await db.collection('exams').add({
           title, date: document.getElementById('exDate').value,
           total: +document.getElementById('exTotal').value || 100,
           subject: document.getElementById('exSubject').value,
+          resultSheetUrl, resultSheetFileId,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         showToast('Exam created!', 'success');
+        ['exTitle','exSubject','exUrl'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('exFile').value = '';
+        document.getElementById('exTotal').value = '';
         await loadExamList();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
-    };
+    });
 
     async function loadExamList() {
       const snap = await db.collection('exams').orderBy('createdAt','desc').limit(10).get();
@@ -1168,16 +1212,21 @@ const TABS = {
       let rows = '';
       snap.forEach(doc => {
         const e = doc.data();
+        const resultCell = e.resultSheetUrl
+          ? `<a href="${e.resultSheetUrl}" target="_blank" class="btn btn-ghost btn-sm" title="View result sheet"><i class="fas fa-file-arrow-down"></i></a>`
+          : `<span style="color:var(--muted);font-size:0.78rem;">—</span>`;
         rows += `<tr>
           <td><strong>${e.title}</strong></td>
           <td>${e.subject||'—'}</td>
           <td>${e.date||'—'}</td>
           <td>${e.total||'—'}</td>
+          <td>${resultCell}</td>
           <td><button class="btn btn-danger btn-sm" onclick="delDoc('exams','${doc.id}',loadExamList)"><i class="fas fa-trash"></i></button></td>
         </tr>`;
       });
-      el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Subject</th><th>Date</th><th>Total</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Subject</th><th>Date</th><th>Total</th><th>Result Sheet</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
+    window.loadExamList = loadExamList;
   },
 
   /* ---- SITE SETTINGS ---- */
@@ -1678,18 +1727,32 @@ const TABS = {
               <option value="All">All Classes</option>
               ${['Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9','Class 10'].map(c=>`<option>${c}</option>`).join('')}
             </select></div>
-          <div class="form-group" style="grid-column:1/-1"><label class="form-label">Routine Image URL (Google Drive)</label>
-            <input class="form-input" id="rt-url" placeholder="https://drive.google.com/..."></div>
-          <div><button class="btn btn-primary" onclick="addRoutine()"><i class="fas fa-upload"></i> Upload Routine</button></div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Routine Image</label>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button type="button" class="btn btn-ghost btn-sm" id="rtTabFile" onclick="switchRoutineTab('rt','file')" style="background:rgba(201,168,76,0.12);color:var(--gold);"><i class="fas fa-upload"></i> Upload File</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="rtTabUrl"  onclick="switchRoutineTab('rt','url')"><i class="fas fa-link"></i> Image URL</button>
+            </div>
+            <div id="rtFileWrap"><input class="form-input" type="file" id="rt-file" accept="image/*"></div>
+            <div id="rtUrlWrap" style="display:none;"><input class="form-input" id="rt-url" placeholder="https://drive.google.com/..."></div>
+          </div>
+          <div><button class="btn btn-primary" id="addRoutineBtn"><i class="fas fa-upload"></i> Upload Routine</button></div>
         </div>
       </div>
       <div class="card" style="margin-bottom:18px;">
         <div class="card-header"><span class="card-title">Upload Teacher Routine</span></div>
         <div class="form-grid form-grid-2">
           <div class="form-group"><label class="form-label">Routine Title</label><input class="form-input" id="trt-title" placeholder="e.g. Teachers Weekly Routine"></div>
-          <div class="form-group"><label class="form-label">Routine Image URL</label>
-            <input class="form-input" id="trt-url" placeholder="https://drive.google.com/..."></div>
-          <div><button class="btn btn-primary" onclick="addTeacherRoutine()"><i class="fas fa-upload"></i> Upload Teacher Routine</button></div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Routine Image</label>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button type="button" class="btn btn-ghost btn-sm" id="trtTabFile" onclick="switchRoutineTab('trt','file')" style="background:rgba(201,168,76,0.12);color:var(--gold);"><i class="fas fa-upload"></i> Upload File</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="trtTabUrl"  onclick="switchRoutineTab('trt','url')"><i class="fas fa-link"></i> Image URL</button>
+            </div>
+            <div id="trtFileWrap"><input class="form-input" type="file" id="trt-file" accept="image/*"></div>
+            <div id="trtUrlWrap" style="display:none;"><input class="form-input" id="trt-url" placeholder="https://drive.google.com/..."></div>
+          </div>
+          <div><button class="btn btn-primary" id="addTeacherRoutineBtn"><i class="fas fa-upload"></i> Upload Teacher Routine</button></div>
         </div>
       </div>
       <div class="card">
@@ -1700,30 +1763,75 @@ const TABS = {
         <div id="routinesList"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading…</p></div></div>
       </div>`;
 
-    window.addRoutine = async () => {
-      const title = document.getElementById('rt-title').value.trim();
-      const cls = document.getElementById('rt-class').value;
-      const url = document.getElementById('rt-url').value.trim();
-      if (!title || !url) { showToast('Title and URL required', 'error'); return; }
-      try {
-        await db.collection('routines').add({ title, class: cls, imageUrl: url, type: 'student', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        showToast('Routine uploaded!', 'success');
-        document.getElementById('rt-title').value = ''; document.getElementById('rt-url').value = '';
-        await loadAllRoutines();
-      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    // ── Tab switcher (file vs URL) shared by student ('rt') and teacher ('trt') routine forms ──
+    window.switchRoutineTab = (prefix, tab) => {
+      const fw = document.getElementById(prefix + 'FileWrap');
+      const uw = document.getElementById(prefix + 'UrlWrap');
+      const fb = document.getElementById(prefix + 'TabFile');
+      const ub = document.getElementById(prefix + 'TabUrl');
+      if (tab === 'file') {
+        fw.style.display=''; uw.style.display='none';
+        fb.style.cssText='background:rgba(201,168,76,0.12);color:var(--gold);'; ub.style.cssText='';
+      } else {
+        fw.style.display='none'; uw.style.display='';
+        ub.style.cssText='background:rgba(201,168,76,0.12);color:var(--gold);'; fb.style.cssText='';
+      }
     };
 
-    window.addTeacherRoutine = async () => {
-      const title = document.getElementById('trt-title').value.trim();
-      const url = document.getElementById('trt-url').value.trim();
-      if (!title || !url) { showToast('Title and URL required', 'error'); return; }
+    document.getElementById('addRoutineBtn').addEventListener('click', async () => {
+      const title = document.getElementById('rt-title').value.trim();
+      const cls = document.getElementById('rt-class').value;
+      if (!title) { showToast('Title is required', 'error'); return; }
+      const isUrlMode = document.getElementById('rtUrlWrap').style.display !== 'none';
+      let url = '', fileId = '';
+      if (isUrlMode) {
+        url = document.getElementById('rt-url').value.trim();
+        if (!url) { showToast('Enter an image URL', 'error'); return; }
+      } else {
+        const file = document.getElementById('rt-file').files[0];
+        if (!file) { showToast('Select an image file', 'error'); return; }
+        showToast('Uploading to Drive…', 'info');
+        try {
+          const result = await uploadViaGAS(file, 'Routines');
+          url = result.url; fileId = result.fileId;
+        } catch(e) { showToast('Upload error: ' + e.message, 'error'); return; }
+      }
       try {
-        await db.collection('teacherRoutines').add({ title, imageUrl: url, type: 'teacher', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        showToast('Teacher routine uploaded!', 'success');
-        document.getElementById('trt-title').value = ''; document.getElementById('trt-url').value = '';
+        await db.collection('routines').add({ title, class: cls, imageUrl: url, fileId, type: 'student', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        showToast('Routine uploaded!', 'success');
+        document.getElementById('rt-title').value = '';
+        document.getElementById('rt-url').value = '';
+        document.getElementById('rt-file').value = '';
         await loadAllRoutines();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
-    };
+    });
+
+    document.getElementById('addTeacherRoutineBtn').addEventListener('click', async () => {
+      const title = document.getElementById('trt-title').value.trim();
+      if (!title) { showToast('Title is required', 'error'); return; }
+      const isUrlMode = document.getElementById('trtUrlWrap').style.display !== 'none';
+      let url = '', fileId = '';
+      if (isUrlMode) {
+        url = document.getElementById('trt-url').value.trim();
+        if (!url) { showToast('Enter an image URL', 'error'); return; }
+      } else {
+        const file = document.getElementById('trt-file').files[0];
+        if (!file) { showToast('Select an image file', 'error'); return; }
+        showToast('Uploading to Drive…', 'info');
+        try {
+          const result = await uploadViaGAS(file, 'Routines');
+          url = result.url; fileId = result.fileId;
+        } catch(e) { showToast('Upload error: ' + e.message, 'error'); return; }
+      }
+      try {
+        await db.collection('teacherRoutines').add({ title, imageUrl: url, fileId, type: 'teacher', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        showToast('Teacher routine uploaded!', 'success');
+        document.getElementById('trt-title').value = '';
+        document.getElementById('trt-url').value = '';
+        document.getElementById('trt-file').value = '';
+        await loadAllRoutines();
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    });
 
     window.loadAllRoutines = async () => {
       const el = document.getElementById('routinesList');
