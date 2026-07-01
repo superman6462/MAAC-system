@@ -1751,10 +1751,12 @@ async function loadQuiz(){
 }
 
 function startQuiz(quizId){
-  // Opens the standalone quiz-attempt page, pre-filled via URL so the student
-  // doesn't need to re-enter their ID/name — quiz-attempt.html still shows
-  // the confirm screen so they can verify details before starting.
-  window.open(`quiz-attempt.html?quiz=${quizId}&sid=${encodeURIComponent(student.id)}&sname=${encodeURIComponent(student.name)}`, '_blank');
+  // Opens the standalone quiz-attempt page with student ID/name AND a signed
+  // "portal" flag. Since the student is already logged into the portal,
+  // quiz-attempt.html skips the manual ID/name entry screen entirely and
+  // jumps straight into the quiz. Anyone opening the quiz via the raw share
+  // link (no portal flag) still has to type in their name & student ID.
+  window.open(`quiz-attempt.html?quiz=${quizId}&sid=${encodeURIComponent(student.id)}&sname=${encodeURIComponent(student.name)}&portal=1`, '_blank');
 }
 
 /* ---- PROFILE ---- */
