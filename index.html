@@ -696,7 +696,7 @@
       </div>
       <div class="hero-visual">
         <div class="hero-img-wrap">
-          <img src="https://placehold.co/460x360/112040/c9a84c?text=MAAC+Students" alt="MAAC Students" loading="lazy">
+          <img id="heroImg" src="https://placehold.co/460x360/112040/c9a84c?text=MAAC+Students" alt="MAAC Students" loading="lazy">
           <div class="hero-badge">
             <div class="num" id="heroStudentBadge">500+</div>
             <div class="lbl">Successful Students</div>
@@ -1147,11 +1147,22 @@ async function loadDynamicContent() {
 
   try {
     // Hero settings
+    // Reads: heading, subheading, images[]
+    // super-admin saves images as an array: [{ url, fileId }, ...]
+    // index.html was previously only reading heading + subheading — images was never applied.
+    // FIX: read images[0].url and apply it to #heroImg.
     const heroDoc = await db.collection('settings').doc('hero').get();
     if (heroDoc.exists) {
       const h = heroDoc.data();
-      if (h.heading)    document.getElementById('heroHeading').innerHTML    = h.heading;
+      if (h.heading)    document.getElementById('heroHeading').innerHTML      = h.heading;
       if (h.subheading) document.getElementById('heroSubheading').textContent = h.subheading;
+
+      // ✅ FIX — apply hero image from images array saved by super-admin
+      const heroImgEl = document.getElementById('heroImg');
+      if (heroImgEl && Array.isArray(h.images) && h.images.length > 0 && h.images[0].url) {
+        heroImgEl.src = h.images[0].url;
+        heroImgEl.alt = 'MAAC Hero Image';
+      }
     }
 
     // Stats
