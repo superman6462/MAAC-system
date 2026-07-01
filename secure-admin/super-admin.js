@@ -1679,7 +1679,7 @@ const TABS = {
             </select></div>
           <div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" id="qz-duration" value="30"></div>
           <div class="form-group" style="grid-column:1/-1"><label class="form-label">Description</label><textarea class="form-input" id="qz-desc" placeholder="Quiz description / instructions"></textarea></div>
-          <div><button class="btn btn-primary" onclick="createQuiz()"><i class="fas fa-plus"></i> Create Quiz</button></div>
+          <div><button class="btn btn-primary" onclick="createQuizFromForm()"><i class="fas fa-plus"></i> Create Quiz</button></div>
         </div>
       </div>
       <div class="card">
@@ -1688,11 +1688,62 @@ const TABS = {
           <button class="btn btn-ghost btn-sm" onclick="TABS.quiz(document.getElementById('contentArea'))"><i class="fas fa-rotate"></i> Refresh</button>
         </div>
         <div id="quizList"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading…</p></div></div>
-      </div>`;
+      </div>
+
+      <!-- Question builder modal -->
+      <div id="qzModalOverlay" class="qz-modal-overlay" style="display:none">
+        <div class="qz-modal">
+          <div class="qz-modal-head">
+            <span id="qzModalTitle" class="card-title">Manage Questions</span>
+            <button class="btn btn-ghost btn-sm" onclick="closeQuizModal()"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="qz-modal-body" id="qzModalBody"></div>
+        </div>
+      </div>
+
+      <!-- Share link modal -->
+      <div id="qzShareOverlay" class="qz-modal-overlay" style="display:none">
+        <div class="qz-modal" style="max-width:420px">
+          <div class="qz-modal-head">
+            <span class="card-title">Share Quiz</span>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qzShareOverlay').style.display='none'"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="qz-modal-body" style="text-align:center">
+            <div id="qzShareQR" style="margin:10px auto;display:flex;justify-content:center"></div>
+            <div class="form-group" style="margin-top:12px">
+              <label class="form-label">Shareable Link</label>
+              <div style="display:flex;gap:8px">
+                <input class="form-input" id="qzShareLink" readonly>
+                <button class="btn btn-primary btn-sm" onclick="copyQuizLink()"><i class="fas fa-copy"></i></button>
+              </div>
+            </div>
+            <p style="font-size:.78rem;color:var(--muted);margin-top:8px">Students open this link, enter their ID &amp; name, and attempt the quiz — no login required.</p>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .qz-modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+        .qz-modal{background:var(--navy2);border:1px solid rgba(255,255,255,.08);border-radius:14px;max-width:720px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+        .qz-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+        .qz-modal-body{padding:18px 20px;overflow-y:auto}
+        .qz-tabbar{display:flex;gap:8px;margin-bottom:16px}
+        .qz-tabbar button{flex:1;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--text,#e8edf7);cursor:pointer;font-size:.82rem;font-weight:600}
+        .qz-tabbar button.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent}
+        .qz-qcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-bottom:10px}
+        .qz-qcard .qtext{font-weight:600;font-size:.88rem;margin-bottom:8px}
+        .qz-opt-row{display:flex;align-items:center;gap:8px;font-size:.82rem;padding:6px 0;color:#c9d3e6}
+        .qz-opt-row.correct{color:var(--green);font-weight:700}
+        .qz-img-prev{max-width:100%;border-radius:8px;margin:8px 0;max-height:220px;object-fit:contain}
+        .qz-drop{border:2px dashed rgba(255,255,255,.15);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:.2s}
+        .qz-drop:hover{border-color:var(--gold)}
+        .qz-progress{height:6px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;margin-top:10px}
+        .qz-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0%;transition:width .2s}
+      </style>`;
 
     await loadQuizList();
 
-    window.createQuiz = async () => {
+    window.createQuizFromForm = async () => {
       const title = document.getElementById('qz-title').value.trim();
       const subject = document.getElementById('qz-subject').value.trim();
       const cls = document.getElementById('qz-class').value;
@@ -1700,8 +1751,8 @@ const TABS = {
       const desc = document.getElementById('qz-desc').value.trim();
       if (!title || !subject) { showToast('Title and Subject required', 'error'); return; }
       try {
-        await db.collection('quizzes').add({ title, subject, class: cls, duration, description: desc, status: 'active', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        showToast('Quiz created!', 'success');
+        await createQuiz({ title, subject, classId: cls, duration, description: desc });
+        showToast('Quiz created! Now add questions.', 'success');
         ['qz-title','qz-subject','qz-desc'].forEach(id => document.getElementById(id).value = '');
         await loadQuizList();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
@@ -1710,25 +1761,28 @@ const TABS = {
     async function loadQuizList() {
       const el = document.getElementById('quizList');
       try {
-        const snap = await db.collection('quizzes').orderBy('createdAt', 'desc').get();
-        if (snap.empty) { el.innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><p>No quizzes yet</p></div>'; return; }
+        const quizzes = await listQuizzes();
+        if (!quizzes.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><p>No quizzes yet</p></div>'; return; }
         let rows = '';
-        snap.forEach(doc => {
-          const q = doc.data();
-          const statusChip = q.status === 'active' ? 'chip-green' : 'chip-red';
+        quizzes.forEach(q => {
+          const statusChip = (q.status || 'active') === 'active' ? 'chip-green' : 'chip-red';
+          const qCount = (q.questions || []).length;
           rows += `<tr>
             <td><strong>${q.title}</strong></td><td>${q.subject}</td><td>${q.class || 'All'}</td>
             <td>${q.duration || '—'} min</td>
+            <td>${qCount} ${qCount === 1 ? 'Q' : 'Qs'}</td>
             <td><span class="chip ${statusChip}">${q.status || 'active'}</span></td>
             <td>
-              <button class="btn btn-ghost btn-sm" onclick="toggleQuizStatus('${doc.id}','${q.status || 'active'}')">
+              <button class="btn btn-ghost btn-sm" onclick="openQuizModal('${q.id}')" title="Manage Questions"><i class="fas fa-list-check"></i></button>
+              <button class="btn btn-ghost btn-sm" onclick="openShareModal('${q.id}')" title="Share Link"><i class="fas fa-share-nodes"></i></button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleQuizStatus('${q.id}','${q.status || 'active'}')" title="Toggle Active/Closed">
                 <i class="fas fa-${q.status === 'active' ? 'lock' : 'lock-open'}"></i>
               </button>
-              <button class="btn btn-danger btn-sm" onclick="delDoc('quizzes','${doc.id}',()=>TABS.quiz(document.getElementById('contentArea')))"><i class="fas fa-trash"></i></button>
+              <button class="btn btn-danger btn-sm" onclick="delDoc('quizzes','${q.id}',()=>TABS.quiz(document.getElementById('contentArea')))"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
         });
-        el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Subject</th><th>Class</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Subject</th><th>Class</th><th>Duration</th><th>Questions</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       } catch(e) { el.innerHTML = `<div class="empty-state"><p>Error: ${e.message}</p></div>`; }
     }
 
@@ -1738,6 +1792,206 @@ const TABS = {
         await db.collection('quizzes').doc(id).update({ status: newStatus });
         showToast(`Quiz ${newStatus}!`, 'success');
         await loadQuizList();
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    };
+
+    /* ---- SHARE MODAL ---- */
+    window.openShareModal = (quizId) => {
+      const url = getQuizShareUrl(quizId);
+      document.getElementById('qzShareLink').value = url;
+      const qrEl = document.getElementById('qzShareQR');
+      qrEl.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(document.createElement('canvas'), url, { width: 180 }, (err, canvas) => {
+          if (!err) qrEl.appendChild(canvas);
+        });
+      }
+      document.getElementById('qzShareOverlay').style.display = 'flex';
+    };
+    window.copyQuizLink = () => {
+      const input = document.getElementById('qzShareLink');
+      input.select(); document.execCommand('copy');
+      showToast('Link copied!', 'success');
+    };
+
+    /* ---- QUESTION BUILDER MODAL ---- */
+    let activeQuizId = null;
+    let activeQuiz = null;
+    let ocrParsedQuestions = [];
+
+    window.openQuizModal = async (quizId) => {
+      activeQuizId = quizId;
+      activeQuiz = await getQuiz(quizId);
+      document.getElementById('qzModalTitle').textContent = `Manage Questions — ${activeQuiz.title}`;
+      renderQuizModalBody('manual');
+      document.getElementById('qzModalOverlay').style.display = 'flex';
+    };
+    window.closeQuizModal = () => {
+      document.getElementById('qzModalOverlay').style.display = 'none';
+      loadQuizList();
+    };
+
+    function renderQuizModalBody(mode) {
+      const body = document.getElementById('qzModalBody');
+      const questions = activeQuiz.questions || [];
+
+      let existingHtml = questions.map((q, idx) => `
+        <div class="qz-qcard">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+            <div style="flex:1">
+              <div class="qtext">${idx + 1}. ${q.text}</div>
+              ${q.image ? `<img class="qz-img-prev" src="${q.image}">` : ''}
+              ${q.options.map((opt, oi) => `<div class="qz-opt-row ${oi === q.correct ? 'correct' : ''}"><i class="fas fa-${oi === q.correct ? 'circle-check' : 'circle'}"></i> ${String.fromCharCode(65 + oi)}) ${opt}</div>`).join('')}
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="removeQuestion('${q.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`).join('');
+
+      body.innerHTML = `
+        <div class="qz-tabbar">
+          <button class="${mode === 'manual' ? 'active' : ''}" onclick="switchQzMode('manual')"><i class="fas fa-keyboard"></i> Type MCQ</button>
+          <button class="${mode === 'image' ? 'active' : ''}" onclick="switchQzMode('image')"><i class="fas fa-image"></i> From Image</button>
+        </div>
+        <div id="qzModeArea"></div>
+        <hr style="border-color:rgba(255,255,255,.08);margin:18px 0">
+        <div class="card-title" style="margin-bottom:10px">Questions in this Quiz (${questions.length})</div>
+        ${existingHtml || '<div class="empty-state"><i class="fas fa-circle-question"></i><p>No questions added yet</p></div>'}
+      `;
+      renderQzMode(mode);
+    }
+
+    window.switchQzMode = (mode) => renderQuizModalBody(mode);
+
+    function renderQzMode(mode) {
+      const modeArea = document.getElementById('qzModeArea');
+      if (mode === 'manual') {
+        modeArea.innerHTML = `
+          <div class="form-group"><label class="form-label">Question Text</label>
+            <textarea class="form-input" id="mq-text" placeholder="Type the question..."></textarea></div>
+          <div class="form-group"><label class="form-label">Question Image (optional)</label>
+            <input type="file" class="form-input" id="mq-image" accept="image/*"></div>
+          <div class="form-grid form-grid-2">
+            ${[0,1,2,3].map(i => `
+              <div class="form-group">
+                <label class="form-label">Option ${String.fromCharCode(65+i)} ${i<2?'':'(optional)'}</label>
+                <input class="form-input" id="mq-opt${i}" placeholder="Option ${String.fromCharCode(65+i)}">
+              </div>`).join('')}
+          </div>
+          <div class="form-group"><label class="form-label">Correct Answer</label>
+            <select class="form-input" id="mq-correct">
+              <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+            </select></div>
+          <button class="btn btn-primary" onclick="addManualQuestion()"><i class="fas fa-plus"></i> Add Question</button>
+        `;
+      } else {
+        modeArea.innerHTML = `
+          <div class="qz-drop" id="qzDropZone">
+            <i class="fas fa-cloud-arrow-up" style="font-size:1.6rem;color:var(--gold)"></i>
+            <p style="margin-top:8px;font-size:.85rem">Click to upload an image of the question paper</p>
+            <p style="font-size:.72rem;color:var(--muted);margin-top:4px">Text will be auto-extracted (OCR) and parsed into MCQs for you to review</p>
+            <input type="file" id="qzImageInput" accept="image/*" style="display:none">
+          </div>
+          <div class="qz-progress" id="qzOcrProgressWrap" style="display:none"><div class="qz-progress-fill" id="qzOcrProgress"></div></div>
+          <p id="qzOcrStatus" style="font-size:.78rem;color:var(--muted);margin-top:6px"></p>
+          <div id="qzOcrReview" style="margin-top:14px"></div>
+        `;
+        const dropZone = document.getElementById('qzDropZone');
+        const fileInput = document.getElementById('qzImageInput');
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleOcrImage);
+      }
+    }
+
+    window.addManualQuestion = async () => {
+      const text = document.getElementById('mq-text').value.trim();
+      const imageFile = document.getElementById('mq-image').files[0];
+      const options = [0,1,2,3].map(i => document.getElementById(`mq-opt${i}`).value.trim()).filter(Boolean);
+      const correct = parseInt(document.getElementById('mq-correct').value);
+      if (!text || options.length < 2) { showToast('Question text and at least 2 options required', 'error'); return; }
+      if (correct >= options.length) { showToast('Correct answer must match an existing option', 'error'); return; }
+      try {
+        let imageUrl = null;
+        if (imageFile) {
+          const result = await uploadViaGAS(imageFile, 'Quiz');
+          imageUrl = result.url;
+        }
+        activeQuiz.questions = await addQuestion(activeQuizId, { text, options, correct, image: imageUrl });
+        showToast('Question added!', 'success');
+        renderQuizModalBody('manual');
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    };
+
+    window.removeQuestion = async (questionId) => {
+      if (!confirm('Remove this question?')) return;
+      try {
+        activeQuiz.questions = await deleteQuestion(activeQuizId, questionId);
+        showToast('Question removed', 'success');
+        renderQuizModalBody(document.querySelector('.qz-tabbar button.active').textContent.includes('Image') ? 'image' : 'manual');
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    };
+
+    async function handleOcrImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const progressWrap = document.getElementById('qzOcrProgressWrap');
+      const progressFill = document.getElementById('qzOcrProgress');
+      const statusEl = document.getElementById('qzOcrStatus');
+      progressWrap.style.display = 'block';
+      statusEl.textContent = 'Reading image…';
+      try {
+        const text = await ocrImageToText(file, (pct) => {
+          progressFill.style.width = pct + '%';
+          statusEl.textContent = `Extracting text… ${pct}%`;
+        });
+        statusEl.textContent = 'Parsing MCQs from extracted text…';
+        ocrParsedQuestions = parseMCQText(text);
+        renderOcrReview(text);
+      } catch (err) {
+        statusEl.textContent = 'OCR failed: ' + err.message;
+      }
+    }
+
+    function renderOcrReview(rawText) {
+      const reviewEl = document.getElementById('qzOcrReview');
+      if (!ocrParsedQuestions.length) {
+        reviewEl.innerHTML = `
+          <div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>Couldn't auto-detect MCQs from this image.</p></div>
+          <div class="form-group"><label class="form-label">Extracted Text (edit &amp; retry, or copy into Type MCQ tab)</label>
+            <textarea class="form-input" id="qzRawTextEdit" rows="6">${rawText}</textarea></div>
+          <button class="btn btn-primary btn-sm" onclick="reparseOcrText()"><i class="fas fa-rotate"></i> Re-parse</button>`;
+        return;
+      }
+      reviewEl.innerHTML = `
+        <p style="font-size:.82rem;color:var(--gold);margin-bottom:8px"><i class="fas fa-circle-check"></i> Found ${ocrParsedQuestions.length} question(s). Review and edit before adding:</p>
+        ${ocrParsedQuestions.map((q, qi) => `
+          <div class="qz-qcard">
+            <div class="form-group"><label class="form-label">Question ${qi + 1}</label>
+              <textarea class="form-input" onchange="ocrParsedQuestions[${qi}].text=this.value">${q.text}</textarea></div>
+            ${q.options.map((opt, oi) => `
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <input type="radio" name="ocr-correct-${qi}" ${oi === q.correct ? 'checked' : ''} onchange="ocrParsedQuestions[${qi}].correct=${oi}">
+                <input class="form-input" style="flex:1" value="${opt}" onchange="ocrParsedQuestions[${qi}].options[${oi}]=this.value">
+              </div>`).join('')}
+          </div>`).join('')}
+        <button class="btn btn-primary" onclick="confirmAddOcrQuestions()"><i class="fas fa-plus"></i> Add All to Quiz</button>
+      `;
+    }
+
+    window.reparseOcrText = () => {
+      const text = document.getElementById('qzRawTextEdit').value;
+      ocrParsedQuestions = parseMCQText(text);
+      renderOcrReview(text);
+    };
+
+    window.confirmAddOcrQuestions = async () => {
+      const valid = ocrParsedQuestions.filter(q => q.text && q.options.filter(Boolean).length >= 2);
+      if (!valid.length) { showToast('No valid questions to add', 'error'); return; }
+      try {
+        const merged = [...(activeQuiz.questions || []), ...valid];
+        activeQuiz.questions = await replaceAllQuestions(activeQuizId, merged);
+        showToast(`${valid.length} question(s) added!`, 'success');
+        ocrParsedQuestions = [];
+        renderQuizModalBody('manual');
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
     };
   },
