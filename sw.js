@@ -1,4 +1,4 @@
-const CACHE_NAME = 'maac-v1.2';
+const CACHE_NAME = 'maac-v1.3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -34,15 +34,42 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch – cache-first, then network, with safe fallback (never resolves to undefined)
+// Fetch – cache-first for assets, network-first (redirect-safe) for navigations
 self.addEventListener('fetch', event => {
-  // Only handle simple GET navigations/assets — POST etc. and cross-origin API calls pass straight through
+  // Only handle simple GET requests — POST etc. and cross-origin API calls pass straight through
   if (event.request.method !== 'GET') return;
   if (event.request.url.includes('firestore') || event.request.url.includes('googleapis')) {
     // Network only for Firebase
     return;
   }
 
+  // ── NAVIGATION REQUESTS (full page loads / clicking links) ──
+  // Handle these separately and let the browser follow redirects (e.g. Cloudflare's
+  // .html -> extensionless 308) natively. Re-wrapping a navigation fetch inside the
+  // service worker without explicit redirect handling caused ERR_FAILED.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request, { redirect: 'follow' })
+        .then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(async () => {
+          // Offline fallback: try the exact cached page, then the cached homepage
+          const cachedPage = await caches.match(event.request);
+          if (cachedPage) return cachedPage;
+          const fallback = await caches.match('/index.html');
+          if (fallback) return fallback;
+          return Response.error();
+        })
+    );
+    return;
+  }
+
+  // ── STATIC ASSETS (css, js, images, fonts, etc.) ──
   event.respondWith(
     caches.match(event.request).then(cached => {
       const networked = fetch(event.request)
@@ -53,15 +80,7 @@ self.addEventListener('fetch', event => {
           }
           return response;
         })
-        .catch(async () => {
-          if (cached) return cached;
-          // Last resort for full-page navigations: try the cached homepage instead of failing outright
-          if (event.request.mode === 'navigate') {
-            const fallback = await caches.match('/index.html');
-            if (fallback) return fallback;
-          }
-          return Response.error();
-        });
+        .catch(() => cached || Response.error());
 
       // Serve cache immediately if present, else wait on network (with its own safe fallback above)
       return cached || networked;
