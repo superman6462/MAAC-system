@@ -613,6 +613,10 @@ const TABS = {
             <input class="form-input" id="tSubject" placeholder="e.g. Physics">
           </div>
           <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Description / Bio</label>
+            <textarea class="form-input" id="tBio" rows="3" placeholder="Short bio, qualifications, experience..."></textarea>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
             <label class="form-label">Photo Source</label>
             <div style="display:flex;gap:8px;margin-bottom:8px;">
               <button type="button" class="btn btn-ghost btn-sm" id="tPhotoTabFile" onclick="switchTeacherPhotoTab(\'file\')" style="background:rgba(201,168,76,0.12);color:var(--gold);">
@@ -675,11 +679,12 @@ const TABS = {
       }
       try {
         await db.collection('teachers').add({
-          name, subject: document.getElementById('tSubject').value, photo,
+          name, subject: document.getElementById('tSubject').value,
+          bio: document.getElementById('tBio').value.trim(), photo,
           addedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         showToast('Teacher added!', 'success');
-        ['tName','tSubject'].forEach(id => document.getElementById(id).value = '');
+        ['tName','tSubject','tBio'].forEach(id => document.getElementById(id).value = '');
         if (urlInput) urlInput.value = '';
         await loadTeacherList();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
@@ -1070,19 +1075,26 @@ const TABS = {
   async leaderboard(area) {
     area.innerHTML = `
       <div class="card" style="margin-bottom:18px;">
-        <div class="card-header"><span class="card-title">Add / Update Score</span></div>
+        <div class="card-header"><span class="card-title">Add / Update Weekly Exam Score</span></div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">প্রতি সপ্তাহে ৩টি বিষয়ে ২০ নম্বর করে মোট ৬০ নম্বরের পরীক্ষা। প্রতিটি বিষয়ের নম্বর দিন — মোট স্কোর অটো হিসাব হবে।</p>
         <div class="form-grid form-grid-2">
           <div class="form-group"><label class="form-label">Student ID</label><input class="form-input" id="lbId" placeholder="Student ID"></div>
           <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="lbName" placeholder="Student name"></div>
           <div class="form-group"><label class="form-label">Class</label><input class="form-input" id="lbClass" placeholder="e.g. Class 10"></div>
-          <div class="form-group"><label class="form-label">Score</label><input class="form-input" type="number" id="lbScore" placeholder="e.g. 95"></div>
+          <div class="form-group"><label class="form-label">Exam Week</label><input class="form-input" id="lbWeek" placeholder="e.g. Week 24, 2026"></div>
+          <div class="form-group"><label class="form-label">Subject 1 Name</label><input class="form-input" id="lbSub1Name" placeholder="e.g. Physics" value="Physics"></div>
+          <div class="form-group"><label class="form-label">Subject 1 Score (/20)</label><input class="form-input" type="number" min="0" max="20" id="lbSub1" placeholder="0-20"></div>
+          <div class="form-group"><label class="form-label">Subject 2 Name</label><input class="form-input" id="lbSub2Name" placeholder="e.g. Chemistry" value="Chemistry"></div>
+          <div class="form-group"><label class="form-label">Subject 2 Score (/20)</label><input class="form-input" type="number" min="0" max="20" id="lbSub2" placeholder="0-20"></div>
+          <div class="form-group"><label class="form-label">Subject 3 Name</label><input class="form-input" id="lbSub3Name" placeholder="e.g. Math" value="Math"></div>
+          <div class="form-group"><label class="form-label">Subject 3 Score (/20)</label><input class="form-input" type="number" min="0" max="20" id="lbSub3" placeholder="0-20"></div>
           <div>
             <button class="btn btn-primary" onclick="saveLeaderboard()"><i class="fas fa-trophy"></i> Save Score</button>
           </div>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">Leaderboard</span></div>
+        <div class="card-header"><span class="card-title">Leaderboard (Total /60)</span></div>
         <div id="lbList"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading…</p></div></div>
       </div>`;
 
@@ -1091,14 +1103,25 @@ const TABS = {
     window.saveLeaderboard = async () => {
       const id = document.getElementById('lbId').value.trim();
       if (!id) { showToast('Student ID required', 'error'); return; }
+      const clamp = v => Math.max(0, Math.min(20, +v || 0));
+      const s1 = clamp(document.getElementById('lbSub1').value);
+      const s2 = clamp(document.getElementById('lbSub2').value);
+      const s3 = clamp(document.getElementById('lbSub3').value);
+      const subjects = [
+        { name: document.getElementById('lbSub1Name').value.trim() || 'Subject 1', score: s1 },
+        { name: document.getElementById('lbSub2Name').value.trim() || 'Subject 2', score: s2 },
+        { name: document.getElementById('lbSub3Name').value.trim() || 'Subject 3', score: s3 }
+      ];
+      const score = s1 + s2 + s3;
       try {
         await db.collection('leaderboard').doc(id).set({
           name: document.getElementById('lbName').value,
           class: document.getElementById('lbClass').value,
-          score: +document.getElementById('lbScore').value,
+          week: document.getElementById('lbWeek').value.trim(),
+          subjects, score,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        showToast('Score saved!', 'success');
+        showToast('Score saved! Total: ' + score + '/60', 'success');
         await loadLB();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
     };
@@ -1111,16 +1134,20 @@ const TABS = {
       snap.forEach(doc => {
         const s = doc.data();
         const medals = ['🥇','🥈','🥉'];
+        const subjLine = Array.isArray(s.subjects) && s.subjects.length
+          ? s.subjects.map(sub => `${sub.name}: ${sub.score}`).join(' · ')
+          : '—';
         rows += `<tr>
           <td>${medals[rank-1]||rank}</td>
           <td><strong>${s.name||doc.id}</strong></td>
           <td>${s.class||'—'}</td>
-          <td><strong style="color:var(--gold)">${s.score||0}</strong></td>
+          <td style="font-size:0.78rem;color:var(--muted);">${subjLine}</td>
+          <td><strong style="color:var(--gold)">${s.score||0}/60</strong></td>
           <td><button class="btn btn-danger btn-sm" onclick="delDoc('leaderboard','${doc.id}',loadLB)"><i class="fas fa-trash"></i></button></td>
         </tr>`;
         rank++;
       });
-      el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Name</th><th>Class</th><th>Score</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Name</th><th>Class</th><th>Subjects</th><th>Total</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
   },
 
