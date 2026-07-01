@@ -1,4 +1,4 @@
-const CACHE_NAME = 'maac-v1.1';
+const CACHE_NAME = 'maac-v1.2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -34,21 +34,36 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch – cache-first, then network
+// Fetch – cache-first, then network, with safe fallback (never resolves to undefined)
 self.addEventListener('fetch', event => {
+  // Only handle simple GET navigations/assets — POST etc. and cross-origin API calls pass straight through
+  if (event.request.method !== 'GET') return;
   if (event.request.url.includes('firestore') || event.request.url.includes('googleapis')) {
     // Network only for Firebase
     return;
   }
+
   event.respondWith(
     caches.match(event.request).then(cached => {
-      const networked = fetch(event.request).then(response => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => cached);
+      const networked = fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(async () => {
+          if (cached) return cached;
+          // Last resort for full-page navigations: try the cached homepage instead of failing outright
+          if (event.request.mode === 'navigate') {
+            const fallback = await caches.match('/index.html');
+            if (fallback) return fallback;
+          }
+          return Response.error();
+        });
+
+      // Serve cache immediately if present, else wait on network (with its own safe fallback above)
       return cached || networked;
     })
   );
