@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a1628">
+  <link rel="manifest" href="/manifest.json">
   <title>MAAC | Student Login</title>
 
   <!-- Fonts -->
@@ -124,6 +125,8 @@
       color: var(--muted);
       margin-top: 4px;
     }
+
+    .logo-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
 
     /* Form */
     .form-group {
@@ -287,6 +290,101 @@
 
     .btn-login.loading .spinner { display: block; }
     .btn-login.loading .btn-text { display: none; }
+
+    /* ============================================================
+       INSTALL PROMPT BANNER
+    ============================================================ */
+    .install-banner {
+      position: fixed;
+      left: 50%; bottom: -140px;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px;
+      z-index: 200;
+      transition: bottom 0.4s cubic-bezier(.4,0,.2,1);
+    }
+    .install-banner.show { bottom: 20px; }
+    .install-banner .ib-icon {
+      width: 44px; height: 44px; flex-shrink: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--navy), var(--navy2));
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.2rem;
+      overflow: hidden;
+    }
+    .install-banner .ib-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .install-banner .ib-text { flex: 1; min-width: 0; }
+    .install-banner .ib-text strong { display: block; font-size: 0.88rem; color: var(--text); }
+    .install-banner .ib-text span { font-size: 0.76rem; color: var(--muted); }
+    .install-banner .ib-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .install-banner button {
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.8rem;
+      padding: 9px 14px; transition: all var(--transition);
+    }
+    .install-banner .ib-install {
+      background: linear-gradient(135deg, var(--gold), var(--gold2)); color: var(--navy);
+    }
+    .install-banner .ib-install:hover { transform: translateY(-2px); }
+    .install-banner .ib-dismiss {
+      background: transparent; color: var(--muted); padding: 9px 10px;
+    }
+    .install-banner .ib-dismiss:hover { color: var(--text); }
+
+    /* ============================================================
+       UPDATE AVAILABLE BANNER (highest priority — top of screen)
+    ============================================================ */
+    .update-banner {
+      position: fixed;
+      top: -120px; left: 0; right: 0;
+      z-index: 300;
+      background: linear-gradient(135deg, var(--navy), var(--navy2));
+      border-bottom: 2px solid var(--gold);
+      box-shadow: 0 8px 32px rgba(10,22,40,0.4);
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px;
+      transition: top 0.4s cubic-bezier(.4,0,.2,1);
+    }
+    .update-banner.show { top: 0; }
+    .update-banner .ub-icon {
+      width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+      background: rgba(201,168,76,0.18);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.05rem;
+      animation: ub-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes ub-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); }
+      50%      { box-shadow: 0 0 0 8px rgba(201,168,76,0); }
+    }
+    .update-banner .ub-text { flex: 1; min-width: 0; }
+    .update-banner .ub-text strong { display: block; font-size: 0.88rem; color: #fff; }
+    .update-banner .ub-text span { font-size: 0.76rem; color: rgba(255,255,255,0.65); }
+    .update-banner .ub-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .update-banner button {
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.8rem;
+      padding: 9px 16px; transition: all var(--transition);
+    }
+    .update-banner .ub-refresh {
+      background: linear-gradient(135deg, var(--gold), var(--gold2)); color: var(--navy);
+    }
+    .update-banner .ub-refresh:hover { transform: translateY(-2px); }
+    .update-banner .ub-later {
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); font-weight: 500;
+    }
+    .update-banner .ub-later:hover { background: rgba(255,255,255,0.18); }
+
+    @media (max-width: 480px) {
+      .install-banner, .update-banner { flex-wrap: wrap; }
+      .install-banner .ib-actions, .update-banner .ub-actions { width: 100%; justify-content: flex-end; }
+    }
   </style>
 </head>
 <body>
@@ -308,7 +406,7 @@
 
       <!-- Logo -->
       <div class="logo-area">
-        <div class="logo-mark">M</div>
+        <div class="logo-mark" id="loginLogoMark">M</div>
         <h1>Student Login</h1>
         <p>MAAC — Master Academic & Admission Care</p>
       </div>
@@ -376,6 +474,32 @@
     </a>
   </div>
 
+  <!-- Install App Banner -->
+  <div class="install-banner" id="installBanner">
+    <div class="ib-icon" id="installBannerIcon">M</div>
+    <div class="ib-text">
+      <strong>Install MAAC App</strong>
+      <span>Add to home screen for quick, offline access.</span>
+    </div>
+    <div class="ib-actions">
+      <button class="ib-dismiss" id="installDismissBtn">Not now</button>
+      <button class="ib-install" id="installConfirmBtn">Install</button>
+    </div>
+  </div>
+
+  <!-- Update Available Banner -->
+  <div class="update-banner" id="updateBanner">
+    <div class="ub-icon"><i class="fas fa-rotate"></i></div>
+    <div class="ub-text">
+      <strong>Update Available</strong>
+      <span>A new version of the app is ready.</span>
+    </div>
+    <div class="ub-actions">
+      <button class="ub-later" id="updateLaterBtn">Later</button>
+      <button class="ub-refresh" id="updateRefreshBtn">Refresh Now</button>
+    </div>
+  </div>
+
   <!-- ============================================================ FIREBASE (CDN — works on GitHub Pages) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -395,6 +519,25 @@
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    // ============================================================
+    // DYNAMIC LOGO
+    // ============================================================
+    (async function loadLogo() {
+      try {
+        const doc = await db.collection('settings').doc('site').get();
+        if (doc.exists) {
+          const site = doc.data();
+          if (site.logoUrl) {
+            const markHTML = `<img src="${site.logoUrl}" alt="${site.name || 'MAAC'} Logo">`;
+            const loginMark = document.getElementById('loginLogoMark');
+            const installMark = document.getElementById('installBannerIcon');
+            if (loginMark) loginMark.innerHTML = markHTML;
+            if (installMark) installMark.innerHTML = markHTML;
+          }
+        }
+      } catch (e) { console.warn('Logo load error:', e.message); }
+    })();
 
     // ============================================================
     // THEME
@@ -512,6 +655,39 @@
       }
     }
 
+    // ============================================================
+    // ADMIN-TRIGGERED UPDATE NOTIFICATION (Firestore live listener — free plan compatible)
+    // ============================================================
+    (function watchAppVersion() {
+      const SEEN_KEY = 'maac-last-seen-version';
+      const lastSeen = localStorage.getItem(SEEN_KEY);
+      let firstSnapshot = true;
+
+      db.collection('settings').doc('appVersion').onSnapshot(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        const version = String(data.version || '');
+
+        // On first load, just record the current version without alerting —
+        // only alert when it CHANGES while the student is using the app, or
+        // if they've never seen any version notice before.
+        if (firstSnapshot) {
+          firstSnapshot = false;
+          if (lastSeen === null) {
+            localStorage.setItem(SEEN_KEY, version);
+            return;
+          }
+          if (lastSeen === version) return;
+        }
+
+        localStorage.setItem(SEEN_KEY, version);
+
+        const subEl = document.querySelector('#updateBanner .ub-text span');
+        if (subEl) subEl.textContent = data.message || 'A new version of the app is ready.';
+        notifyUpdateAvailable();
+      }, err => console.warn('appVersion listener error:', err.message));
+    })();
+
     // Allow Enter key to trigger login
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleLogin();
@@ -520,6 +696,130 @@
     // If already logged in, go directly to portal
     if (sessionStorage.getItem('maacStudent')) {
       window.location.href = 'student/portal.html';
+    }
+
+    // ============================================================
+    // INSTALL APP PROMPT
+    // ============================================================
+    let deferredInstallPrompt = null;
+    const installBanner = document.getElementById('installBanner');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      // Don't nag if dismissed recently or already installed
+      const dismissedAt = localStorage.getItem('maac-install-dismissed');
+      const alreadyInstalled = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+      const recentlyDismissed = dismissedAt && (Date.now() - +dismissedAt < 1000 * 60 * 60 * 24 * 7); // 7 days
+      if (!alreadyInstalled && !recentlyDismissed) {
+        setTimeout(() => installBanner.classList.add('show'), 1200);
+      }
+    });
+
+    document.getElementById('installConfirmBtn').addEventListener('click', async () => {
+      installBanner.classList.remove('show');
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+    });
+
+    document.getElementById('installDismissBtn').addEventListener('click', () => {
+      installBanner.classList.remove('show');
+      localStorage.setItem('maac-install-dismissed', Date.now().toString());
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installBanner.classList.remove('show');
+    });
+
+    // ============================================================
+    // SERVICE WORKER — REGISTRATION + UPDATE DETECTION
+    // ============================================================
+    const updateBanner = document.getElementById('updateBanner');
+    let waitingWorker = null;
+
+    function notifyUpdateAvailable() {
+      updateBanner.classList.add('show');
+
+      // Vibration (mobile, if permitted by browser — no explicit permission needed for vibrate)
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+      }
+
+      // System notification — request permission if needed, highest priority
+      if ('Notification' in window) {
+        const fireNotification = () => {
+          try {
+            const n = new Notification('MAAC — Update Available', {
+              body: 'A new version of the app is ready. Tap to refresh.',
+              icon: '/assets/images/icon-192.png',
+              badge: '/assets/images/icon-192.png',
+              tag: 'maac-update',
+              requireInteraction: true, // stays until user interacts — won't be missed
+              vibrate: [200, 100, 200, 100, 200]
+            });
+            n.onclick = () => {
+              window.focus();
+              document.getElementById('updateRefreshBtn').click();
+            };
+          } catch (e) { console.warn('Notification error:', e.message); }
+        };
+
+        if (Notification.permission === 'granted') {
+          fireNotification();
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(perm => {
+            if (perm === 'granted') fireNotification();
+          });
+        }
+      }
+    }
+
+    document.getElementById('updateRefreshBtn').addEventListener('click', () => {
+      if (waitingWorker) {
+        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        window.location.reload();
+      }
+    });
+
+    document.getElementById('updateLaterBtn').addEventListener('click', () => {
+      updateBanner.classList.remove('show');
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        // Case 1: an update is already waiting when this page loads
+        if (reg.waiting) {
+          waitingWorker = reg.waiting;
+          notifyUpdateAvailable();
+        }
+
+        // Case 2: a new worker is found while this page is open
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              waitingWorker = newWorker;
+              notifyUpdateAvailable();
+            }
+          });
+        });
+
+        // Periodically check for updates (every 5 min while page is open)
+        setInterval(() => reg.update(), 5 * 60 * 1000);
+      }).catch(err => console.warn('SW registration failed:', err.message));
+
+      // Reload once the new SW has taken control (after user clicks Refresh)
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
     }
   </script>
 </body>
